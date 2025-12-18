@@ -1,39 +1,47 @@
 # Auto-Generate Kode Barang Feature
 
 ## 📝 Overview
+
 Fitur auto-generate kode barang dengan format: **KATEGORI(3)-NAMA(2)-LOKASI(2)-SEQ(3)**
 
 Contoh: `ELE-KL-RG-001`
-- `ELE` = 3 huruf pertama dari "Elektronik"
-- `KL` = Inisial 2 huruf dari "Kursi Lipat" (K + L)
-- `RG` = Inisial 2 huruf dari "Ruang Guru" (R + G)
-- `001` = Nomor urut 3 digit (auto increment)
+
+-   `ELE` = 3 huruf pertama dari "Elektronik"
+-   `KL` = Inisial 2 huruf dari "Kursi Lipat" (K + L)
+-   `RG` = Inisial 2 huruf dari "Ruang Guru" (R + G)
+-   `001` = Nomor urut 3 digit (auto increment)
 
 ## ✨ Features
 
 ### 1. Ekstraksi Otomatis
-- **Kategori (3 char)**: Mengambil 3 huruf pertama dari nama kategori
-  - "Elektronik" → `ELE`
-  - "Furniture" → `FUR`
-  - "Alat Tulis" → `ALA`
 
-- **Nama Barang (2 char)**: Mengambil inisial dari kata pertama dan kedua
-  - "Kursi Lipat" → `KL` (K dari Kursi, L dari Lipat)
-  - "Komputer Dell" → `KD` (K dari Komputer, D dari Dell)
-  - "Meja" → `ME` (2 huruf pertama jika hanya 1 kata)
+-   **Kategori (3 char)**: Mengambil 3 huruf pertama dari nama kategori
 
-- **Lokasi (2 char)**: Mengambil inisial dari kata pertama dan kedua
-  - "Ruang Guru" → `RG`
-  - "Lab Komputer" → `LK`
-  - "Gudang" → `GU` (2 huruf pertama jika hanya 1 kata)
+    -   "Elektronik" → `ELE`
+    -   "Furniture" → `FUR`
+    -   "Alat Tulis" → `ALA`
+
+-   **Nama Barang (2 char)**: Mengambil inisial dari kata pertama dan kedua
+
+    -   "Kursi Lipat" → `KL` (K dari Kursi, L dari Lipat)
+    -   "Komputer Dell" → `KD` (K dari Komputer, D dari Dell)
+    -   "Meja" → `ME` (2 huruf pertama jika hanya 1 kata)
+
+-   **Lokasi (2 char)**: Mengambil inisial dari kata pertama dan kedua
+    -   "Ruang Guru" → `RG`
+    -   "Lab Komputer" → `LK`
+    -   "Gudang" → `GU` (2 huruf pertama jika hanya 1 kata)
 
 ### 2. Auto-Increment
-- Sistem akan otomatis mencari nomor urut terakhir dengan prefix yang sama
-- Jika `ELE-KL-RG-001` sudah ada, maka yang baru akan menjadi `ELE-KL-RG-002`
-- Bahkan data yang sudah dihapus (soft deleted) tetap dihitung untuk menghindari duplikasi
+
+-   Sistem akan otomatis mencari nomor urut terakhir dengan prefix yang sama
+-   Jika `ELE-KL-RG-001` sudah ada, maka yang baru akan menjadi `ELE-KL-RG-002`
+-   Bahkan data yang sudah dihapus (soft deleted) tetap dihitung untuk menghindari duplikasi
 
 ### 3. Real-Time Update di Form
+
 Kode barang akan otomatis di-generate di form saat user:
+
 1. Memilih **Kategori** (dropdown)
 2. Mengisi **Nama Barang** (text input)
 3. Memilih **Lokasi** (dropdown)
@@ -43,18 +51,21 @@ Field kode barang bersifat **disabled** (read-only) tapi tetap tersimpan ke data
 ## 🔧 Implementation Details
 
 ### 1. Model Method (`app/Models/Barang.php`)
+
 ```php
 public static function generateKodeBarang(?int $kategoriId, ?int $lokasiId, ?string $namaBarang): string
 ```
 
 Method ini:
-- Menerima kategori_id, lokasi_id, dan nama_barang
-- Mengambil data kategori dan lokasi dari database
-- Ekstrak kode berdasarkan aturan di atas
-- Generate nomor urut dengan query last record
-- Return format lengkap: `XXX-XX-XX-001`
+
+-   Menerima kategori_id, lokasi_id, dan nama_barang
+-   Mengambil data kategori dan lokasi dari database
+-   Ekstrak kode berdasarkan aturan di atas
+-   Generate nomor urut dengan query last record
+-   Return format lengkap: `XXX-XX-XX-001`
 
 ### 2. Observer Hook (`app/Observers/BarangObserver.php`)
+
 ```php
 public function creating(Barang $barang): void
 {
@@ -67,6 +78,7 @@ public function creating(Barang $barang): void
 Observer ini sebagai **fallback** jika kode_barang belum ter-generate (misalnya dari seeder atau API).
 
 ### 3. Form Integration (`app/Filament/Resources/Barangs/Schemas/BarangForm.php`)
+
 ```php
 TextInput::make('kode_barang')
     ->disabled()
@@ -77,9 +89,9 @@ TextInput::make('kode_barang')
     })
 ```
 
-- Field **disabled** tapi **dehydrated** (tetap disimpan)
-- Real-time update dengan `->live()`
-- Trigger pada perubahan kategori, nama barang, atau lokasi
+-   Field **disabled** tapi **dehydrated** (tetap disimpan)
+-   Real-time update dengan `->live()`
+-   Trigger pada perubahan kategori, nama barang, atau lokasi
 
 ## ✅ Testing
 
@@ -93,6 +105,7 @@ TextInput::make('kode_barang')
 6. ✓ **Multi-word kategori**: "Furniture Kantor" → "FUR"
 
 Run tests:
+
 ```bash
 php artisan test --filter=AutoGenerateKodeBarangTest
 ```
@@ -100,6 +113,7 @@ php artisan test --filter=AutoGenerateKodeBarangTest
 ## 🎯 Usage Example
 
 ### Via Filament UI
+
 1. Buka halaman **Barang** → **Create**
 2. Pilih **Kategori**: "Elektronik"
 3. Isi **Nama Barang**: "Kursi Lipat"
@@ -109,6 +123,7 @@ php artisan test --filter=AutoGenerateKodeBarangTest
 7. Klik **Save**
 
 ### Via Code/Tinker
+
 ```php
 // Generate kode secara manual
 $kode = Barang::generateKodeBarang(1, 1, 'Kursi Lipat');
@@ -137,11 +152,11 @@ Barang::create([
 
 ## 🔄 Future Enhancements (Optional)
 
-- [ ] Custom format per kategori
-- [ ] Prefix tahun (ELE-2025-KL-RG-001)
-- [ ] QR Code generator dari kode_barang
-- [ ] Barcode integration
-- [ ] Bulk code generation
+-   [ ] Custom format per kategori
+-   [ ] Prefix tahun (ELE-2025-KL-RG-001)
+-   [ ] QR Code generator dari kode_barang
+-   [ ] Barcode integration
+-   [ ] Bulk code generation
 
 ---
 
