@@ -25,6 +25,13 @@ class TransaksiBarangsTable
                     ->sortable()
                     ->weight(FontWeight::Bold),
 
+                TextColumn::make('kode_transaksi')
+                    ->label('Kode Transaksi')
+                    ->searchable()
+                    ->sortable()
+                    ->weight(FontWeight::Bold)
+                    ->copyable(),
+
                 TextColumn::make('barang.kode_barang')
                     ->label('Kode Barang')
                     ->searchable()
@@ -36,8 +43,8 @@ class TransaksiBarangsTable
                     ->sortable()
                     ->limit(30),
 
-                TextColumn::make('jenis_transaksi')
-                    ->label('Jenis')
+                TextColumn::make('tipe_transaksi')
+                    ->label('Tipe')
                     ->sortable()
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
@@ -52,6 +59,11 @@ class TransaksiBarangsTable
                     ->alignEnd()
                     ->suffix(' unit')
                     ->weight(FontWeight::Bold),
+
+                TextColumn::make('penanggung_jawab')
+                    ->label('Penanggung Jawab')
+                    ->searchable()
+                    ->toggleable(isToggledHiddenByDefault: true),
 
                 TextColumn::make('user.name')
                     ->label('Diinput Oleh')
@@ -72,8 +84,8 @@ class TransaksiBarangsTable
             ])
             ->defaultSort('tanggal_transaksi', 'desc')
             ->filters([
-                SelectFilter::make('jenis_transaksi')
-                    ->label('Jenis Transaksi')
+                SelectFilter::make('tipe_transaksi')
+                    ->label('Tipe Transaksi')
                     ->options([
                         'masuk' => 'Masuk',
                         'keluar' => 'Keluar',

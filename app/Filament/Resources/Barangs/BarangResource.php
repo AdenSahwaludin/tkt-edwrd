@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Barangs;
 use App\Filament\Resources\Barangs\Pages\CreateBarang;
 use App\Filament\Resources\Barangs\Pages\EditBarang;
 use App\Filament\Resources\Barangs\Pages\ListBarangs;
+use App\Filament\Resources\Barangs\Pages\ViewBarang;
 use App\Filament\Resources\Barangs\Schemas\BarangForm;
 use App\Filament\Resources\Barangs\Tables\BarangsTable;
 use App\Models\Barang;
@@ -55,6 +56,7 @@ class BarangResource extends Resource
         return [
             'index' => ListBarangs::route('/'),
             'create' => CreateBarang::route('/create'),
+            'view' => ViewBarang::route('/{record}'),
             'edit' => EditBarang::route('/{record}/edit'),
         ];
     }

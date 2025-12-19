@@ -5,10 +5,10 @@ namespace App\Filament\Resources\Barangs\Schemas;
 use App\Models\Barang;
 use App\Models\Kategori;
 use App\Models\Lokasi;
+use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Get;
-use Filament\Forms\Set;
 use Filament\Schemas\Schema;
 
 class BarangForm
@@ -34,7 +34,7 @@ class BarangForm
                     ->searchable()
                     ->preload()
                     ->live()
-                    ->afterStateUpdated(function (Get $get, Set $set, ?string $state) {
+                    ->afterStateUpdated(function ($get, $set, $state) {
                         self::updateKodeBarang($get, $set);
                     }),
 
@@ -44,7 +44,7 @@ class BarangForm
                     ->maxLength(255)
                     ->placeholder('Contoh: Komputer Dell Latitude')
                     ->live(onBlur: true)
-                    ->afterStateUpdated(function (Get $get, Set $set, ?string $state) {
+                    ->afterStateUpdated(function ($get, $set, $state) {
                         self::updateKodeBarang($get, $set);
                     }),
 
@@ -55,11 +55,11 @@ class BarangForm
                     ->searchable()
                     ->preload()
                     ->live()
-                    ->afterStateUpdated(function (Get $get, Set $set, ?string $state) {
+                    ->afterStateUpdated(function ($get, $set, $state) {
                         self::updateKodeBarang($get, $set);
                     }),
 
-                TextInput::make('jumlah')
+                TextInput::make('jumlah_stok')
                     ->label('Jumlah Stok')
                     ->required()
                     ->numeric()
@@ -76,6 +76,11 @@ class BarangForm
                     ->suffix('unit')
                     ->helperText('Stok minimum sebelum perlu pemesanan ulang'),
 
+                TextInput::make('merk')
+                    ->label('Merk/Brand')
+                    ->maxLength(100)
+                    ->placeholder('Contoh: Dell, Canon, Faber Castell'),
+
                 TextInput::make('harga_satuan')
                     ->label('Harga Satuan')
                     ->required()
@@ -83,6 +88,19 @@ class BarangForm
                     ->minValue(0)
                     ->prefix('Rp')
                     ->placeholder('0'),
+
+                DatePicker::make('tanggal_pembelian')
+                    ->label('Tanggal Pembelian')
+                    ->maxDate(now())
+                    ->native(false)
+                    ->displayFormat('d/m/Y')
+                    ->placeholder('Pilih tanggal'),
+
+                Textarea::make('deskripsi')
+                    ->label('Deskripsi')
+                    ->rows(3)
+                    ->maxLength(500)
+                    ->placeholder('Keterangan tambahan tentang barang...'),
 
                 Select::make('status')
                     ->label('Status')
@@ -100,7 +118,7 @@ class BarangForm
     /**
      * Update kode barang saat kategori, nama barang, atau lokasi berubah
      */
-    protected static function updateKodeBarang(Get $get, Set $set): void
+    protected static function updateKodeBarang($get, $set): void
     {
         $kategoriId = $get('kategori_id');
         $lokasiId = $get('lokasi_id');

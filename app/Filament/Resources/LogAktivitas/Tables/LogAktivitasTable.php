@@ -37,10 +37,11 @@ class LogAktivitasTable
                     })
                     ->formatStateUsing(fn (string $state): string => strtoupper($state)),
 
-                TextColumn::make('model_type')
-                    ->label('Model')
+                TextColumn::make('nama_tabel')
+                    ->label('Tabel')
                     ->sortable()
-                    ->formatStateUsing(fn (?string $state): string => $state ? class_basename($state) : '-')
+                    ->searchable()
+                    ->formatStateUsing(fn (?string $state): string => $state ? ucwords(str_replace('_', ' ', $state)) : '-')
                     ->toggleable(),
 
                 TextColumn::make('user.name')
@@ -61,8 +62,8 @@ class LogAktivitasTable
                     ->formatStateUsing(fn (string $state): string => ucwords(str_replace('_', ' ', $state)))
                     ->toggleable(),
 
-                TextColumn::make('keterangan')
-                    ->label('Keterangan')
+                TextColumn::make('deskripsi')
+                    ->label('Deskripsi')
                     ->limit(40)
                     ->searchable()
                     ->toggleable(),

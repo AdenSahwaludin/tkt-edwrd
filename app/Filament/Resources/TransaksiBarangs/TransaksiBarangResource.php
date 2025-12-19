@@ -5,6 +5,7 @@ namespace App\Filament\Resources\TransaksiBarangs;
 use App\Filament\Resources\TransaksiBarangs\Pages\CreateTransaksiBarang;
 use App\Filament\Resources\TransaksiBarangs\Pages\EditTransaksiBarang;
 use App\Filament\Resources\TransaksiBarangs\Pages\ListTransaksiBarangs;
+use App\Filament\Resources\TransaksiBarangs\Pages\ViewTransaksiBarang;
 use App\Filament\Resources\TransaksiBarangs\Schemas\TransaksiBarangForm;
 use App\Filament\Resources\TransaksiBarangs\Tables\TransaksiBarangsTable;
 use App\Models\TransaksiBarang;
@@ -53,6 +54,7 @@ class TransaksiBarangResource extends Resource
         return [
             'index' => ListTransaksiBarangs::route('/'),
             'create' => CreateTransaksiBarang::route('/create'),
+            'view' => ViewTransaksiBarang::route('/{record}'),
             'edit' => EditTransaksiBarang::route('/{record}/edit'),
         ];
     }

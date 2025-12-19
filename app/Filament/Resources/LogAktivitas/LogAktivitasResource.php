@@ -5,6 +5,7 @@ namespace App\Filament\Resources\LogAktivitas;
 use App\Filament\Resources\LogAktivitas\Pages\CreateLogAktivitas;
 use App\Filament\Resources\LogAktivitas\Pages\EditLogAktivitas;
 use App\Filament\Resources\LogAktivitas\Pages\ListLogAktivitas;
+use App\Filament\Resources\LogAktivitas\Pages\ViewLogAktivitas;
 use App\Filament\Resources\LogAktivitas\Schemas\LogAktivitasForm;
 use App\Filament\Resources\LogAktivitas\Tables\LogAktivitasTable;
 use App\Models\LogAktivitas;
@@ -53,6 +54,7 @@ class LogAktivitasResource extends Resource
         return [
             'index' => ListLogAktivitas::route('/'),
             'create' => CreateLogAktivitas::route('/create'),
+            'view' => ViewLogAktivitas::route('/{record}'),
             'edit' => EditLogAktivitas::route('/{record}/edit'),
         ];
     }

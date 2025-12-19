@@ -32,7 +32,8 @@ it('generates kode barang with correct format', function () {
         'Kursi Lipat'
     );
 
-    expect($kodeBarang)->toBe('ELE-KL-RG-001');
+    // "Ruang Guru" now extracts to "GU" (skip "Ruang", take "Guru")
+    expect($kodeBarang)->toBe('ELE-KL-GU-001');
 });
 
 it('generates kode barang with single word nama barang', function () {
@@ -42,13 +43,13 @@ it('generates kode barang with single word nama barang', function () {
         'Meja'
     );
 
-    expect($kodeBarang)->toBe('ELE-ME-RG-001');
+    expect($kodeBarang)->toBe('ELE-ME-GU-001');
 });
 
 it('increments sequence number for same prefix', function () {
     // Create first barang
     Barang::create([
-        'kode_barang' => 'ELE-KL-RG-001',
+        'kode_barang' => 'ELE-KL-GU-001',
         'nama_barang' => 'Kursi Lipat',
         'kategori_id' => $this->kategori->id,
         'lokasi_id' => $this->lokasi->id,
@@ -65,7 +66,7 @@ it('increments sequence number for same prefix', function () {
         'Kursi Lipat'
     );
 
-    expect($kodeBarang)->toBe('ELE-KL-RG-002');
+    expect($kodeBarang)->toBe('ELE-KL-GU-002');
 });
 
 it('auto-generates kode barang when creating barang without kode', function () {
@@ -80,10 +81,10 @@ it('auto-generates kode barang when creating barang without kode', function () {
     ]);
 
     expect($barang->kode_barang)->not->toBeNull();
-    expect($barang->kode_barang)->toMatch('/^ELE-KD-RG-\d{3}$/');
+    expect($barang->kode_barang)->toMatch('/^ELE-KD-GU-\d{3}$/');
 });
 
-it('extracts correct initials from multi-word lokasi', function () {
+it('extracts correct code from multi-word lokasi with common words', function () {
     $lokasi2 = Lokasi::create([
         'kode_lokasi' => 'LK',
         'nama_lokasi' => 'Lab Komputer',
@@ -95,8 +96,27 @@ it('extracts correct initials from multi-word lokasi', function () {
         'Mouse'
     );
 
-    // LK should be extracted from "Lab Komputer"
-    expect($kodeBarang)->toBe('ELE-MO-LK-001');
+    // Should extract "KO" from "Lab Komputer" (skip "Lab", take "Komputer")
+    expect($kodeBarang)->toBe('ELE-MO-KO-001');
+});
+
+it('differentiates similar lokasi names', function () {
+    $lokasiKepala = Lokasi::create([
+        'kode_lokasi' => 'RKS',
+        'nama_lokasi' => 'Ruang Kepala Sekolah',
+    ]);
+
+    $lokasiKelas = Lokasi::create([
+        'kode_lokasi' => 'RK7',
+        'nama_lokasi' => 'Ruang Kelas 7A',
+    ]);
+
+    $kodeKepala = Barang::generateKodeBarang($this->kategori->id, $lokasiKepala->id, 'Meja');
+    $kodeKelas = Barang::generateKodeBarang($this->kategori->id, $lokasiKelas->id, 'Meja');
+
+    // Should be different: KS vs K7
+    expect($kodeKepala)->toBe('ELE-ME-KS-001');
+    expect($kodeKelas)->toBe('ELE-ME-K7-001');
 });
 
 it('handles three-word kategori correctly', function () {
@@ -111,6 +131,6 @@ it('handles three-word kategori correctly', function () {
         'Meja Tulis'
     );
 
-    // Should take first 3 letters: FUR
-    expect($kodeBarang)->toBe('FUR-MT-RG-001');
+    // Should take first 3 letters: FUR, and GU from "Ruang Guru"
+    expect($kodeBarang)->toBe('FUR-MT-GU-001');
 });

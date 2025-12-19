@@ -44,13 +44,19 @@ class BarangsTable
                     ->badge()
                     ->color('gray'),
 
-                TextColumn::make('jumlah')
+                TextColumn::make('jumlah_stok')
                     ->label('Stok')
                     ->sortable()
                     ->alignEnd()
                     ->suffix(' unit')
                     ->badge()
                     ->color(fn ($record) => $record->isStokRendah() ? 'danger' : 'success'),
+
+                TextColumn::make('merk')
+                    ->label('Merk')
+                    ->searchable()
+                    ->sortable()
+                    ->toggleable(),
 
                 TextColumn::make('reorder_point')
                     ->label('ROP')
@@ -66,12 +72,18 @@ class BarangsTable
                     ->alignEnd()
                     ->toggleable(),
 
+                TextColumn::make('tanggal_pembelian')
+                    ->label('Tgl Beli')
+                    ->date('d M Y')
+                    ->sortable()
+                    ->toggleable(),
+
                 TextColumn::make('nilaiTotal')
                     ->label('Nilai Total')
                     ->state(fn ($record) => $record->nilaiTotal())
                     ->money('IDR')
                     ->sortable(query: function ($query, $direction) {
-                        return $query->orderByRaw("(jumlah * harga_satuan) {$direction}");
+                        return $query->orderByRaw("(jumlah_stok * harga_satuan) {$direction}");
                     })
                     ->alignEnd()
                     ->toggleable(),

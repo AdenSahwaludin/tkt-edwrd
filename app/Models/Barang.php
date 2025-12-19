@@ -126,20 +126,43 @@ class Barang extends Model
             }
         }
 
-        // Ambil 2 huruf dari nama lokasi
+        // Ambil 2 huruf dari nama lokasi dengan logika pintar
         if ($lokasiId) {
             $lokasi = Lokasi::find($lokasiId);
             if ($lokasi) {
-                // Ambil inisial dari setiap kata, maksimal 2 huruf
-                $words = explode(' ', $lokasi->nama_lokasi);
-                $initials = '';
-                foreach ($words as $word) {
-                    if (strlen($initials) < 2 && ! empty($word)) {
-                        $initials .= strtoupper(substr($word, 0, 1));
+                $words = array_filter(explode(' ', $lokasi->nama_lokasi), fn ($w) => ! empty($w));
+                $words = array_values($words); // Re-index array
+
+                // Kata umum yang akan di-skip jika ada kata lain yang lebih spesifik
+                $commonWords = ['ruang', 'lab', 'laboratorium', 'kantor', 'gedung', 'tempat'];
+
+                if (count($words) === 1) {
+                    // Single word: ambil 2 huruf pertama
+                    $lokasiCode = strtoupper(substr($words[0], 0, 2));
+                } elseif (count($words) >= 2) {
+                    // Multi word: cari kata yang paling spesifik
+                    $specificWords = array_filter($words, fn ($w) => ! in_array(strtolower($w), $commonWords));
+                    $specificWords = array_values($specificWords);
+
+                    if (count($specificWords) >= 2) {
+                        // Ambil 1 huruf dari 2 kata spesifik pertama
+                        $lokasiCode = strtoupper(substr($specificWords[0], 0, 1).substr($specificWords[1], 0, 1));
+                    } elseif (count($specificWords) === 1) {
+                        // Hanya 1 kata spesifik: ambil 2 huruf pertama
+                        // Atau gabung dengan angka jika ada
+                        $specificWord = $specificWords[0];
+                        if (preg_match('/(\d+)/', $lokasi->nama_lokasi, $matches)) {
+                            // Ada angka: gabung huruf pertama + angka
+                            $lokasiCode = strtoupper(substr($specificWord, 0, 1).$matches[1]);
+                        } else {
+                            // Tidak ada angka: ambil 2 huruf
+                            $lokasiCode = strtoupper(substr($specificWord, 0, 2));
+                        }
+                    } else {
+                        // Semua kata umum: ambil inisial 2 kata pertama
+                        $lokasiCode = strtoupper(substr($words[0], 0, 1).substr($words[1], 0, 1));
                     }
                 }
-                // Jika hanya 1 kata atau 1 inisial, ambil 2 huruf pertama
-                $lokasiCode = strlen($initials) >= 2 ? $initials : strtoupper(substr($lokasi->nama_lokasi, 0, 2));
             }
         }
 
