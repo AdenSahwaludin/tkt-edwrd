@@ -62,14 +62,6 @@ class User extends Authenticatable implements FilamentUser
     }
 
     /**
-     * Relasi ke laporan yang dibuat pengguna ini.
-     */
-    public function laporan(): HasMany
-    {
-        return $this->hasMany(Laporan::class, 'dibuat_oleh');
-    }
-
-    /**
      * Relasi ke log aktivitas pengguna ini.
      */
     public function logAktivitas(): HasMany

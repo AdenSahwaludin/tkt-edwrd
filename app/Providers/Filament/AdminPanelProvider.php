@@ -60,9 +60,8 @@ class AdminPanelProvider extends PanelProvider
             ->strictAuthorization()
             ->sidebarCollapsibleOnDesktop()
             ->navigationGroups([
-                'Manajemen Inventaris',
-                'Data Master',
-                'Laporan',
+                'Transaksi',
+                'Master Barang',
                 'Sistem',
             ]);
     }

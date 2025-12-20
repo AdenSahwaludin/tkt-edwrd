@@ -20,7 +20,7 @@ class LogAktivitasResource extends Resource
 {
     protected static ?string $model = LogAktivitas::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-clipboard-document-list';
 
     protected static ?string $navigationLabel = 'Log Aktivitas';
 
@@ -30,7 +30,7 @@ class LogAktivitasResource extends Resource
 
     protected static string|UnitEnum|null $navigationGroup = 'Sistem';
 
-    protected static ?int $navigationSort = 1;
+    protected static ?int $navigationSort = 3;
 
     public static function form(Schema $schema): Schema
     {

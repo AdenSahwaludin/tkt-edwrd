@@ -12,21 +12,49 @@ use Filament\Forms\Components\DatePicker;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use UnitEnum;
 
 class Laporan extends Page
 {
-    protected static BackedEnum|string|null $navigationIcon = 'heroicon-o-document-text';
+    protected static BackedEnum|string|null $navigationIcon = 'heroicon-o-chart-bar';
 
-    protected static ?string $navigationLabel = 'Laporan';
+    protected static ?string $navigationLabel = 'Dashboard Laporan';
 
-    protected static ?string $title = 'Laporan';
+    protected static ?string $title = 'Dashboard Laporan';
 
-    protected static string|UnitEnum|null $navigationGroup = null;
+    protected static string|UnitEnum|null $navigationGroup = 'Laporan';
 
-    protected static ?int $navigationSort = 0;
+    protected static ?int $navigationSort = 4;
 
     protected string $view = 'filament.pages.laporan';
+
+    public function getViewData(): array
+    {
+        $periodeAwal = now()->startOfMonth();
+        $periodeAkhir = now()->endOfMonth();
+
+        $stats = [
+            'total_barang' => Barang::count(),
+            'barang_baik' => Barang::byStatus('baik')->count(),
+            'barang_rusak' => Barang::byStatus('rusak')->count(),
+            'barang_hilang' => Barang::byStatus('hilang')->count(),
+            'transaksi_bulan_ini' => TransaksiBarang::whereBetween('tanggal_transaksi', [$periodeAwal, $periodeAkhir])->count(),
+            'transaksi_masuk' => TransaksiBarang::masuk()->whereBetween('tanggal_transaksi', [$periodeAwal, $periodeAkhir])->count(),
+            'transaksi_keluar' => TransaksiBarang::keluar()->whereBetween('tanggal_transaksi', [$periodeAwal, $periodeAkhir])->count(),
+        ];
+
+        $laporanTerakhir = LaporanModel::with('pembuatLaporan')
+            ->latest()
+            ->limit(10)
+            ->get();
+
+        return [
+            'stats' => $stats,
+            'laporanTerakhir' => $laporanTerakhir,
+        ];
+    }
 
     public function getHeading(): string
     {
@@ -109,127 +137,153 @@ class Laporan extends Page
         ];
     }
 
-    protected function generateLaporanInventaris(array $data): mixed
+    public function downloadLaporan(int $laporanId): ?StreamedResponse
+    {
+        $laporan = LaporanModel::find($laporanId);
+
+        if (! $laporan) {
+            Notification::make()
+                ->title('Laporan tidak ditemukan')
+                ->danger()
+                ->send();
+
+            return null;
+        }
+
+        if (! Storage::exists($laporan->file_path)) {
+            Notification::make()
+                ->title('File laporan tidak tersedia')
+                ->body('File laporan sudah tidak ada di penyimpanan.')
+                ->danger()
+                ->send();
+
+            return null;
+        }
+
+        $filename = Str::slug($laporan->judul_laporan).'-'.$laporan->created_at->format('YmdHis').'.pdf';
+
+        return Storage::download($laporan->file_path, $filename);
+    }
+
+    protected function generateLaporanInventaris(array $data): ?StreamedResponse
     {
         $barangs = Barang::with(['kategori', 'lokasi'])
             ->orderBy('kategori_id')
             ->orderBy('nama_barang')
             ->get();
 
-        $transaksi_masuk = TransaksiBarang::masuk()
+        $transaksiMasuk = TransaksiBarang::masuk()
             ->whereBetween('tanggal_transaksi', [$data['periode_awal'], $data['periode_akhir']])
             ->count();
 
-        $transaksi_keluar = TransaksiBarang::keluar()
+        $transaksiKeluar = TransaksiBarang::keluar()
             ->whereBetween('tanggal_transaksi', [$data['periode_awal'], $data['periode_akhir']])
             ->count();
 
-        $pdf = Pdf::loadView('laporan.inventaris-bulanan', [
-            'barangs' => $barangs,
-            'periode_awal' => $data['periode_awal'],
-            'periode_akhir' => $data['periode_akhir'],
-            'transaksi_masuk' => $transaksi_masuk,
-            'transaksi_keluar' => $transaksi_keluar,
-            'user' => auth()->user(),
-        ]);
-
-        $filename = 'laporan-inventaris-'.now()->format('YmdHis').'.pdf';
-        $path = 'laporan/'.$filename;
-
-        Storage::put($path, $pdf->output());
-
-        LaporanModel::create([
-            'judul_laporan' => 'Laporan Inventaris Bulanan',
-            'jenis_laporan' => 'inventaris_bulanan',
-            'periode_awal' => $data['periode_awal'],
-            'periode_akhir' => $data['periode_akhir'],
-            'file_path' => $path,
-            'dibuat_oleh' => auth()->id(),
-        ]);
-
-        Notification::make()
-            ->title('Laporan berhasil digenerate!')
-            ->success()
-            ->send();
-
-        return response()->streamDownload(function () use ($pdf) {
-            echo $pdf->output();
-        }, $filename);
+        return $this->generateDanDownloadPdf(
+            judul: 'Laporan Inventaris Bulanan',
+            jenis: 'inventaris_bulanan',
+            view: 'laporan.inventaris-bulanan',
+            periodeAwal: $data['periode_awal'],
+            periodeAkhir: $data['periode_akhir'],
+            data: [
+                'barangs' => $barangs,
+                'periode_awal' => $data['periode_awal'],
+                'periode_akhir' => $data['periode_akhir'],
+                'transaksi_masuk' => $transaksiMasuk,
+                'transaksi_keluar' => $transaksiKeluar,
+                'user' => auth()->user(),
+            ],
+        );
     }
 
-    protected function generateLaporanBarangRusak(array $data): mixed
+    protected function generateLaporanBarangRusak(array $data): ?StreamedResponse
     {
         $barangs = Barang::with(['kategori', 'lokasi'])
             ->byStatus('rusak')
             ->orderBy('nama_barang')
             ->get();
 
-        $pdf = Pdf::loadView('laporan.barang-rusak', [
-            'barangs' => $barangs,
-            'periode_awal' => $data['periode_awal'],
-            'periode_akhir' => $data['periode_akhir'],
-            'user' => auth()->user(),
-        ]);
-
-        $filename = 'laporan-barang-rusak-'.now()->format('YmdHis').'.pdf';
-        $path = 'laporan/'.$filename;
-
-        Storage::put($path, $pdf->output());
-
-        LaporanModel::create([
-            'judul_laporan' => 'Laporan Barang Rusak',
-            'jenis_laporan' => 'barang_rusak',
-            'periode_awal' => $data['periode_awal'],
-            'periode_akhir' => $data['periode_akhir'],
-            'file_path' => $path,
-            'dibuat_oleh' => auth()->id(),
-        ]);
-
-        Notification::make()
-            ->title('Laporan barang rusak berhasil digenerate!')
-            ->success()
-            ->send();
-
-        return response()->streamDownload(function () use ($pdf) {
-            echo $pdf->output();
-        }, $filename);
+        return $this->generateDanDownloadPdf(
+            judul: 'Laporan Barang Rusak',
+            jenis: 'barang_rusak',
+            view: 'laporan.barang-rusak',
+            periodeAwal: $data['periode_awal'],
+            periodeAkhir: $data['periode_akhir'],
+            data: [
+                'barangs' => $barangs,
+                'periode_awal' => $data['periode_awal'],
+                'periode_akhir' => $data['periode_akhir'],
+                'user' => auth()->user(),
+            ],
+        );
     }
 
-    protected function generateLaporanBarangHilang(array $data): mixed
+    protected function generateLaporanBarangHilang(array $data): ?StreamedResponse
     {
         $barangs = Barang::with(['kategori', 'lokasi'])
             ->byStatus('hilang')
             ->orderBy('nama_barang')
             ->get();
 
-        $pdf = Pdf::loadView('laporan.barang-hilang', [
-            'barangs' => $barangs,
-            'periode_awal' => $data['periode_awal'],
-            'periode_akhir' => $data['periode_akhir'],
-            'user' => auth()->user(),
-        ]);
+        return $this->generateDanDownloadPdf(
+            judul: 'Laporan Barang Hilang',
+            jenis: 'barang_hilang',
+            view: 'laporan.barang-hilang',
+            periodeAwal: $data['periode_awal'],
+            periodeAkhir: $data['periode_akhir'],
+            data: [
+                'barangs' => $barangs,
+                'periode_awal' => $data['periode_awal'],
+                'periode_akhir' => $data['periode_akhir'],
+                'user' => auth()->user(),
+            ],
+        );
+    }
 
-        $filename = 'laporan-barang-hilang-'.now()->format('YmdHis').'.pdf';
-        $path = 'laporan/'.$filename;
+    protected function generateDanDownloadPdf(
+        string $judul,
+        string $jenis,
+        string $view,
+        mixed $periodeAwal,
+        mixed $periodeAkhir,
+        array $data
+    ): ?StreamedResponse {
+        try {
+            $pdf = Pdf::loadView($view, $data);
 
-        Storage::put($path, $pdf->output());
+            $filename = Str::slug($judul).'-'.now()->format('YmdHis').'.pdf';
+            $path = 'laporan/'.$filename;
 
-        LaporanModel::create([
-            'judul_laporan' => 'Laporan Barang Hilang',
-            'jenis_laporan' => 'barang_hilang',
-            'periode_awal' => $data['periode_awal'],
-            'periode_akhir' => $data['periode_akhir'],
-            'file_path' => $path,
-            'dibuat_oleh' => auth()->id(),
-        ]);
+            Storage::put($path, $pdf->output());
 
-        Notification::make()
-            ->title('Laporan barang hilang berhasil digenerate!')
-            ->success()
-            ->send();
+            LaporanModel::create([
+                'judul_laporan' => $judul,
+                'jenis_laporan' => $jenis,
+                'periode_awal' => $periodeAwal,
+                'periode_akhir' => $periodeAkhir,
+                'file_path' => $path,
+                'dibuat_oleh' => auth()->id(),
+            ]);
 
-        return response()->streamDownload(function () use ($pdf) {
-            echo $pdf->output();
-        }, $filename);
+            Notification::make()
+                ->title($judul.' berhasil digenerate!')
+                ->success()
+                ->send();
+
+            return response()->streamDownload(static function () use ($pdf) {
+                echo $pdf->output();
+            }, $filename);
+        } catch (\Throwable $exception) {
+            report($exception);
+
+            Notification::make()
+                ->title('Gagal membuat laporan')
+                ->body('Silakan coba lagi. '.$exception->getMessage())
+                ->danger()
+                ->send();
+
+            return null;
+        }
     }
 }

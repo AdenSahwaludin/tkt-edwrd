@@ -21,7 +21,7 @@ class LokasiResource extends Resource
 {
     protected static ?string $model = Lokasi::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-map-pin';
 
     protected static ?string $navigationLabel = 'Lokasi';
 
@@ -29,7 +29,7 @@ class LokasiResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Lokasi';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Master Data';
+    protected static string|UnitEnum|null $navigationGroup = 'Master Barang';
 
     protected static ?int $navigationSort = 3;
 

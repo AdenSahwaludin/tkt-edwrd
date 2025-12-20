@@ -20,7 +20,7 @@ class KategoriForm
                             ->unique(ignoreRecord: true)
                             ->placeholder('Contoh: Elektronik, Furniture, ATK'),
 
-                        Textarea::make('keterangan')
+                        Textarea::make('deskripsi')
                             ->label('Keterangan')
                             ->maxLength(65535)
                             ->rows(4)

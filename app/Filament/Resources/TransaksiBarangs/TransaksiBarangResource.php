@@ -20,7 +20,7 @@ class TransaksiBarangResource extends Resource
 {
     protected static ?string $model = TransaksiBarang::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-arrow-path-rounded-square';
 
     protected static ?string $navigationLabel = 'Transaksi Barang';
 

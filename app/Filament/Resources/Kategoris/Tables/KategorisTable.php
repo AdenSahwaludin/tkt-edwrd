@@ -25,7 +25,7 @@ class KategorisTable
                     ->sortable()
                     ->weight(FontWeight::Bold),
 
-                TextColumn::make('keterangan')
+                TextColumn::make('deskripsi')
                     ->label('Keterangan')
                     ->limit(50)
                     ->searchable()
