@@ -12,7 +12,6 @@ use App\Models\Barang;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
-use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
@@ -33,6 +32,11 @@ class BarangResource extends Resource
     protected static string|UnitEnum|null $navigationGroup = 'Master Barang';
 
     protected static ?int $navigationSort = 1;
+
+    public static function canAccess(): bool
+    {
+        return auth()->user()?->hasPermissionTo('view_barangs') ?? false;
+    }
 
     public static function form(Schema $schema): Schema
     {
