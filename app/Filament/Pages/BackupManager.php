@@ -8,7 +8,6 @@ use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\File;
 
 class BackupManager extends Page
 {
@@ -92,11 +91,20 @@ class BackupManager extends Page
         try {
             $output = shell_exec('cd "'.base_path().'" && php artisan db:backup 2>&1');
 
-            preg_match('/Backup created: (.+?) \(([0-9.]+\s[A-Z]+)\)/', $output, $matches);
+            // Check if backup was created successfully
+            if (strpos($output, 'Backup created') !== false) {
+                // Try to extract filename and size
+                preg_match('/Backup created: (.+?) \(([0-9.]+\s[A-Z]+)\)/', $output, $matches);
 
-            if (! empty($matches[1])) {
-                $filename = basename($matches[1]);
-                $fileSize = $this->parseFileSize($matches[2] ?? '0 B');
+                if (! empty($matches[1])) {
+                    $filename = basename($matches[1]);
+                    $fileSize = $this->parseFileSize($matches[2] ?? '0 B');
+                } else {
+                    // Try alternative pattern
+                    preg_match('/storage\/backups\/(.+?)(?:\s|$)/', $output, $matches);
+                    $filename = $matches[1] ?? null;
+                    $fileSize = null;
+                }
 
                 $backupLog->update([
                     'filename' => $filename,
@@ -106,7 +114,7 @@ class BackupManager extends Page
             } else {
                 $backupLog->update([
                     'status' => 'failed',
-                    'notes' => 'Backup command did not return expected format',
+                    'notes' => 'Backup command did not return expected format. Output: '.$output,
                 ]);
             }
         } catch (\Exception $e) {
@@ -115,43 +123,6 @@ class BackupManager extends Page
                 'notes' => $e->getMessage(),
             ]);
             throw $e;
-        }
-    }
-
-    public function downloadBackup(int $id): void
-    {
-        try {
-            $backupLog = BackupLog::findOrFail($id);
-
-            if ($backupLog->status !== 'success') {
-                throw new \Exception('File backup belum selesai atau gagal diproses.');
-            }
-
-            $backupPath = storage_path('backups/'.$backupLog->filename);
-
-            if (! File::exists($backupPath)) {
-                Notification::make()
-                    ->title('File Tidak Ditemukan')
-                    ->body('File backup tidak ada di server.')
-                    ->danger()
-                    ->send();
-
-                return;
-            }
-
-            // Serve file download via route/controller
-            // For now, just notify user to download via browser
-            Notification::make()
-                ->title('Download Siap')
-                ->body('File backup siap diunduh. Gunakan command: php artisan backup:download')
-                ->success()
-                ->send();
-        } catch (\Exception $e) {
-            Notification::make()
-                ->title('Download Gagal')
-                ->body($e->getMessage())
-                ->danger()
-                ->send();
         }
     }
 

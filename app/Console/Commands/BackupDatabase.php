@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 
 class BackupDatabase extends Command
@@ -37,26 +38,62 @@ class BackupDatabase extends Command
             $filename = 'backup_'.now()->format('Ymd_His').'.sql';
             $filepath = $backupPath.'/'.$filename;
 
-            // Gunakan mysqldump
+            // Get database configuration
             $database = config('database.connections.mysql.database');
             $host = config('database.connections.mysql.host');
             $username = config('database.connections.mysql.username');
             $password = config('database.connections.mysql.password');
 
-            $command = sprintf(
-                'mysqldump --user=%s --password=%s --host=%s %s > %s',
-                escapeshellarg($username),
-                escapeshellarg($password),
-                escapeshellarg($host),
-                escapeshellarg($database),
-                escapeshellarg($filepath)
-            );
+            // Use pure PHP to create backup (works without mysqldump)
+            $pdo = DB::connection()->getPdo();
 
-            exec($command, $output, $status);
+            // Start SQL dump
+            $sql = "-- MySQL Dump\n";
+            $sql .= "-- Generated at: ".now()->toDateTimeString()."\n";
+            $sql .= "-- Database: {$database}\n\n";
+            $sql .= "SET FOREIGN_KEY_CHECKS=0;\n\n";
 
-            if ($status === 0 && File::exists($filepath)) {
+            // Get all tables
+            $tables = DB::select('SHOW TABLES');
+            $tableKey = "Tables_in_{$database}";
+
+            foreach ($tables as $table) {
+                $tableName = $table->$tableKey;
+
+                // Get table structure
+                $createTable = DB::select("SHOW CREATE TABLE `{$tableName}`")[0];
+                $sql .= "-- Structure for table `{$tableName}`\n";
+                $sql .= "DROP TABLE IF EXISTS `{$tableName}`;\n";
+                $sql .= $createTable->{'Create Table'}.";\n\n";
+
+                // Get table data
+                $rows = DB::table($tableName)->get();
+                if ($rows->count() > 0) {
+                    $sql .= "-- Data for table `{$tableName}`\n";
+
+                    foreach ($rows as $row) {
+                        $values = [];
+                        foreach ((array) $row as $value) {
+                            if (is_null($value)) {
+                                $values[] = 'NULL';
+                            } else {
+                                $values[] = "'".addslashes($value)."'";
+                            }
+                        }
+                        $sql .= 'INSERT INTO `'.$tableName.'` VALUES ('.implode(', ', $values).");\n";
+                    }
+                    $sql .= "\n";
+                }
+            }
+
+            $sql .= "SET FOREIGN_KEY_CHECKS=1;\n";
+
+            // Write to file
+            File::put($filepath, $sql);
+
+            if (File::exists($filepath)) {
                 $size = $this->humanFilesize(File::size($filepath));
-                $this->info("✓ Database backup berhasil dibuat: {$filename} ({$size})");
+                $this->info("Backup created: {$filepath} ({$size})");
 
                 return self::SUCCESS;
             } else {
