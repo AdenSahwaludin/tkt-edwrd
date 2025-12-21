@@ -5,8 +5,8 @@ namespace App\Filament\Resources\TransaksiBarangs\Pages;
 use App\Filament\Resources\TransaksiBarangs\TransaksiBarangResource;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\Placeholder;
-use Filament\Forms\Components\Section;
 use Filament\Resources\Pages\ViewRecord;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 
 class ViewTransaksiBarang extends ViewRecord
@@ -24,33 +24,6 @@ class ViewTransaksiBarang extends ViewRecord
     {
         return $schema
             ->components([
-                Section::make('Informasi Transaksi')
-                    ->description('Detail lengkap transaksi barang')
-                    ->icon('heroicon-o-document-text')
-                    ->columns(2)
-                    ->collapsible()
-                    ->components([
-                        Placeholder::make('kode_transaksi')
-                            ->label('Kode Transaksi')
-                            ->content(fn ($record) => $record->kode_transaksi)
-                            ->columnSpan(1),
-
-                        Placeholder::make('tipe_transaksi')
-                            ->label('Tipe Transaksi')
-                            ->content(fn ($record) => ucfirst($record->tipe_transaksi))
-                            ->columnSpan(1),
-
-                        Placeholder::make('tanggal_transaksi')
-                            ->label('Tanggal Transaksi')
-                            ->content(fn ($record) => $record->tanggal_transaksi->format('d F Y'))
-                            ->columnSpan(1),
-
-                        Placeholder::make('penanggung_jawab')
-                            ->label('Penanggung Jawab')
-                            ->content(fn ($record) => $record->penanggung_jawab ?? '-')
-                            ->columnSpan(1),
-                    ]),
-
                 Section::make('Informasi Barang')
                     ->description('Detail barang yang ditransaksikan')
                     ->icon('heroicon-o-cube')
@@ -83,6 +56,34 @@ class ViewTransaksiBarang extends ViewRecord
                             ->columnSpan(1),
                     ]),
 
+                Section::make('Informasi Transaksi')
+                    ->description('Detail lengkap transaksi barang')
+                    ->icon('heroicon-o-document-text')
+                    ->columns(2)
+                    ->collapsible()
+                    ->components([
+                        Placeholder::make('kode_transaksi')
+                            ->label('Kode Transaksi')
+                            ->content(fn ($record) => $record->kode_transaksi)
+                            ->columnSpan(1),
+
+                        Placeholder::make('tipe_transaksi')
+                            ->label('Tipe Transaksi')
+                            ->content(fn ($record) => ucfirst($record->tipe_transaksi))
+                            ->columnSpan(1),
+
+                        Placeholder::make('tanggal_transaksi')
+                            ->label('Tanggal Transaksi')
+                            ->content(fn ($record) => $record->tanggal_transaksi->format('d F Y'))
+                            ->columnSpan(1),
+
+                        Placeholder::make('penanggung_jawab')
+                            ->label('Penanggung Jawab')
+                            ->content(fn ($record) => $record->penanggung_jawab ?? '-')
+                            ->columnSpan(1),
+                    ]),
+
+                
                 Section::make('Keterangan & Audit')
                     ->description('Catatan dan informasi pencatatan')
                     ->icon('heroicon-o-information-circle')
