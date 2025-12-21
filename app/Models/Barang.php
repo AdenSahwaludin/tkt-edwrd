@@ -76,6 +76,14 @@ class Barang extends Model
     }
 
     /**
+     * Relasi ke barang rusak.
+     */
+    public function barangRusak(): HasMany
+    {
+        return $this->hasMany(BarangRusak::class, 'barang_id');
+    }
+
+    /**
      * Scope untuk barang dengan stok rendah (stok <= reorder point).
      */
     public function scopeStokRendah(Builder $query): Builder
