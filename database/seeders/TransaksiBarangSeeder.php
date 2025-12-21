@@ -21,6 +21,7 @@ class TransaksiBarangSeeder extends Seeder
 
         if ($barangs->isEmpty() || $users->isEmpty()) {
             $this->command->warn('Pastikan Barang dan User sudah di-seed terlebih dahulu!');
+
             return;
         }
 
@@ -47,6 +48,11 @@ class TransaksiBarangSeeder extends Seeder
         ];
 
         $tanggalKode = [];
+        // Track current stock levels for each barang during seeding
+        $stockTracking = [];
+        foreach ($barangs as $barang) {
+            $stockTracking[$barang->id] = $barang->jumlah_stok;
+        }
 
         // Generate transactions for December 1-30, 2025
         for ($day = 1; $day <= 30; $day++) {
@@ -59,16 +65,30 @@ class TransaksiBarangSeeder extends Seeder
 
             for ($i = 0; $i < $jumlahTransaksiHari; $i++) {
                 $barang = $barangs->random();
-                $tipeTransaksi = rand(0, 1) ? 'masuk' : 'keluar';
-                
-                // For keluar transactions, limit quantity to available stock
-                if ($tipeTransaksi === 'keluar') {
-                    $maxJumlah = max(1, $barang->jumlah_stok);
-                    $jumlah = rand(1, min(20, $maxJumlah));
+                $currentStock = $stockTracking[$barang->id];
+
+                // Decide transaction type: if stock is low, do masuk; otherwise random
+                if ($currentStock <= 5) {
+                    $tipeTransaksi = 'masuk';
                 } else {
-                    $jumlah = rand(5, 50);
+                    $tipeTransaksi = rand(0, 1) ? 'masuk' : 'keluar';
                 }
-                
+
+                // Calculate safe quantity
+                if ($tipeTransaksi === 'keluar') {
+                    // Only create keluar if there's stock, and limit to current stock
+                    if ($currentStock <= 0) {
+                        continue; // Skip this transaction
+                    }
+                    $maxJumlah = min(20, $currentStock);
+                    $jumlah = rand(1, max(1, $maxJumlah));
+                    $stockTracking[$barang->id] -= $jumlah;
+                } else {
+                    // masuk transaction
+                    $jumlah = rand(5, 50);
+                    $stockTracking[$barang->id] += $jumlah;
+                }
+
                 $user = $users->random();
 
                 // Generate unique kode_transaksi

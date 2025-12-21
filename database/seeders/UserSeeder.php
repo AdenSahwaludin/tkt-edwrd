@@ -14,34 +14,34 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
-        // Admin user
-        User::create([
+        // Admin user with Admin Sistem role
+        $admin = User::create([
             'name' => 'Administrator',
             'email' => 'admin@inventaris.test',
             'password' => Hash::make('password'),
-            'role' => 'admin',
             'is_active' => true,
             'email_verified_at' => now(),
         ]);
+        $admin->assignRole('Admin Sistem');
 
-        // Petugas Inventaris user
-        User::create([
+        // Petugas Inventaris user with Staff role
+        $petugas = User::create([
             'name' => 'Petugas Inventaris',
             'email' => 'petugas@inventaris.test',
             'password' => Hash::make('password'),
-            'role' => 'petugas_inventaris',
             'is_active' => true,
             'email_verified_at' => now(),
         ]);
+        $petugas->assignRole('Staff');
 
-        // Kepala Sekolah user
-        User::create([
+        // Kepala Sekolah user with Staff role
+        $kepala = User::create([
             'name' => 'Kepala Sekolah',
             'email' => 'kepala@inventaris.test',
             'password' => Hash::make('password'),
-            'role' => 'kepala_sekolah',
             'is_active' => true,
             'email_verified_at' => now(),
         ]);
+        $kepala->assignRole('Staff');
     }
 }
