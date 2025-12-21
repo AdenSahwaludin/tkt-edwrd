@@ -47,6 +47,14 @@ class UserPolicy
     }
 
     /**
+     * Determine whether the user can delete any model.
+     */
+    public function deleteAny(User $user): bool
+    {
+        return $user->hasPermissionTo('delete_users');
+    }
+
+    /**
      * Determine whether the user can restore the model.
      */
     public function restore(User $user, User $model): bool
@@ -58,6 +66,14 @@ class UserPolicy
      * Determine whether the user can permanently delete the model.
      */
     public function forceDelete(User $user, User $model): bool
+    {
+        return $user->hasPermissionTo('delete_users');
+    }
+
+    /**
+     * Determine whether the user can permanently delete any model.
+     */
+    public function forceDeleteAny(User $user): bool
     {
         return $user->hasPermissionTo('delete_users');
     }
