@@ -21,6 +21,7 @@ class RolePermissionSeeder extends Seeder
         $adminRole = Role::firstOrCreate(['name' => 'Admin Sistem', 'guard_name' => 'web']);
         $staffRole = Role::firstOrCreate(['name' => 'Staff', 'guard_name' => 'web']);
         $petugasInventarisRole = Role::firstOrCreate(['name' => 'Petugas Inventaris', 'guard_name' => 'web']);
+        $kepalaSekolahRole = Role::firstOrCreate(['name' => 'Kepala Sekolah', 'guard_name' => 'web']);
 
         // === USER MANAGEMENT PERMISSIONS ===
         Permission::firstOrCreate(['name' => 'view_users', 'guard_name' => 'web']);
@@ -52,6 +53,7 @@ class RolePermissionSeeder extends Seeder
         Permission::firstOrCreate(['name' => 'create_transaksi_barangs', 'guard_name' => 'web']);
         Permission::firstOrCreate(['name' => 'edit_transaksi_barangs', 'guard_name' => 'web']);
         Permission::firstOrCreate(['name' => 'delete_transaksi_barangs', 'guard_name' => 'web']);
+        Permission::firstOrCreate(['name' => 'approve_transaksi_barangs', 'guard_name' => 'web']);
 
         // === BARANG RUSAK PERMISSIONS ===
         Permission::firstOrCreate(['name' => 'view_barang_rusaks', 'guard_name' => 'web']);
@@ -110,6 +112,16 @@ class RolePermissionSeeder extends Seeder
             'view_laporan',
             'view_dashboard',
             'view_log_aktivitas',
+        ]);
+
+        // Assign permissions to Kepala Sekolah role (based on use case diagram)
+        $kepalaSekolahRole->syncPermissions([
+            'view_dashboard',
+            'view_laporan',
+            'view_barangs',
+            'view_barang_rusaks',
+            'view_transaksi_barangs',
+            'approve_transaksi_barangs',
         ]);
 
         // Assign Admin Sistem role to existing admin user if exists

@@ -71,4 +71,14 @@ class UserFactory extends Factory
             $user->assignRole('Admin Sistem');
         });
     }
+
+    /**
+     * Create user with Kepala Sekolah role
+     */
+    public function kepalaSekolah(): static
+    {
+        return $this->afterCreating(function ($user) {
+            $user->assignRole('Kepala Sekolah');
+        });
+    }
 }

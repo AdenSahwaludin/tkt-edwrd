@@ -83,10 +83,12 @@ class TransaksiBarangSeeder extends Seeder
                     $maxJumlah = min(20, $currentStock);
                     $jumlah = rand(1, max(1, $maxJumlah));
                     $stockTracking[$barang->id] -= $jumlah;
+                    $approvalStatus = 'approved'; // Outgoing doesn't need approval
                 } else {
-                    // masuk transaction
+                    // masuk transaction - set to approved so stock is updated during seeding
                     $jumlah = rand(5, 50);
                     $stockTracking[$barang->id] += $jumlah;
+                    $approvalStatus = 'approved'; // Approve during seeding
                 }
 
                 $user = $users->random();
@@ -106,6 +108,9 @@ class TransaksiBarangSeeder extends Seeder
                     'penanggung_jawab' => rand(0, 1) ? collect($penanggungJawabNames)->random() : null,
                     'keterangan' => rand(0, 1) ? collect($keterangan)->random() : null,
                     'user_id' => $user->id,
+                    'approval_status' => $approvalStatus,
+                    'approved_by' => $approvalStatus === 'approved' ? $user->id : null,
+                    'approved_at' => $approvalStatus === 'approved' ? now() : null,
                 ]);
             }
 

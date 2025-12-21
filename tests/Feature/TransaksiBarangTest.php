@@ -124,6 +124,7 @@ it('updates stock when transaksi masuk is created', function () {
         'jumlah' => 10,
         'tanggal_transaksi' => now(),
         'user_id' => $this->user->id,
+        'approval_status' => 'approved',
     ]);
 
     $this->barang->refresh();

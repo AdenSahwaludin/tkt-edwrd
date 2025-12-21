@@ -70,4 +70,13 @@ class TransaksiBarangPolicy
     {
         return $user->isAdmin();
     }
+
+    /**
+     * Hanya user dengan permission approve_transaksi_barangs yang dapat menyetujui transaksi.
+     * Biasanya Kepala Sekolah dan Admin.
+     */
+    public function approve(User $user, TransaksiBarang $transaksiBarang): bool
+    {
+        return $user->hasPermissionTo('approve_transaksi_barangs');
+    }
 }

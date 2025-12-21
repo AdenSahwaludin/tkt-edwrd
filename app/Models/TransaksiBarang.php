@@ -30,6 +30,10 @@ class TransaksiBarang extends Model
         'penanggung_jawab',
         'keterangan',
         'user_id',
+        'approved_by',
+        'approved_at',
+        'approval_status',
+        'approval_notes',
     ];
 
     /**
@@ -40,6 +44,7 @@ class TransaksiBarang extends Model
         return [
             'jumlah' => 'integer',
             'tanggal_transaksi' => 'date',
+            'approved_at' => 'datetime',
         ];
     }
 
@@ -60,6 +65,14 @@ class TransaksiBarang extends Model
     }
 
     /**
+     * Relasi ke pengguna yang menyetujui transaksi.
+     */
+    public function approvedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'approved_by');
+    }
+
+    /**
      * Scope untuk transaksi masuk.
      */
     public function scopeMasuk(Builder $query): Builder
@@ -73,6 +86,30 @@ class TransaksiBarang extends Model
     public function scopeKeluar(Builder $query): Builder
     {
         return $query->where('tipe_transaksi', 'keluar');
+    }
+
+    /**
+     * Scope untuk transaksi pending approval.
+     */
+    public function scopePending(Builder $query): Builder
+    {
+        return $query->where('approval_status', 'pending');
+    }
+
+    /**
+     * Scope untuk transaksi yang sudah disetujui.
+     */
+    public function scopeApproved(Builder $query): Builder
+    {
+        return $query->where('approval_status', 'approved');
+    }
+
+    /**
+     * Scope untuk transaksi yang ditolak.
+     */
+    public function scopeRejected(Builder $query): Builder
+    {
+        return $query->where('approval_status', 'rejected');
     }
 
     /**
@@ -97,5 +134,29 @@ class TransaksiBarang extends Model
     public function isKeluar(): bool
     {
         return $this->tipe_transaksi === 'keluar';
+    }
+
+    /**
+     * Cek apakah transaksi ini menunggu persetujuan.
+     */
+    public function isPending(): bool
+    {
+        return $this->approval_status === 'pending';
+    }
+
+    /**
+     * Cek apakah transaksi ini sudah disetujui.
+     */
+    public function isApproved(): bool
+    {
+        return $this->approval_status === 'approved';
+    }
+
+    /**
+     * Cek apakah transaksi ini ditolak.
+     */
+    public function isRejected(): bool
+    {
+        return $this->approval_status === 'rejected';
     }
 }

@@ -23,6 +23,11 @@ class TransaksiBarangObserver
                 );
             }
         }
+
+        // Set default approval status for incoming transactions
+        if ($transaksiBarang->tipe_transaksi === 'masuk' && empty($transaksiBarang->approval_status)) {
+            $transaksiBarang->approval_status = 'pending';
+        }
     }
 
     /**
@@ -34,20 +39,27 @@ class TransaksiBarangObserver
         DB::transaction(function () use ($transaksiBarang) {
             $barang = $transaksiBarang->barang;
 
-            // Update stok berdasarkan tipe transaksi
-            if ($transaksiBarang->tipe_transaksi === 'masuk') {
-                $barang->increment('jumlah_stok', $transaksiBarang->jumlah);
-            } else {
+            // Update stok based on transaction type and approval status
+            // Only update stock if:
+            // 1. Transaction is 'keluar' (outgoing) - doesn't need approval
+            // 2. Transaction is 'masuk' (incoming) AND already approved
+            if ($transaksiBarang->tipe_transaksi === 'keluar') {
                 $barang->decrement('jumlah_stok', $transaksiBarang->jumlah);
+            } elseif ($transaksiBarang->tipe_transaksi === 'masuk' && $transaksiBarang->approval_status === 'approved') {
+                $barang->increment('jumlah_stok', $transaksiBarang->jumlah);
             }
 
             // Catat log aktivitas
+            $statusMessage = $transaksiBarang->tipe_transaksi === 'masuk' && $transaksiBarang->approval_status === 'pending'
+                ? ' (menunggu persetujuan)'
+                : '';
+
             LogAktivitas::create([
                 'user_id' => $transaksiBarang->user_id,
                 'jenis_aktivitas' => 'create',
                 'nama_tabel' => 'transaksi_barang',
                 'record_id' => $transaksiBarang->id,
-                'deskripsi' => "Transaksi {$transaksiBarang->tipe_transaksi} barang {$barang->nama_barang} sejumlah {$transaksiBarang->jumlah} {$barang->satuan}",
+                'deskripsi' => "Transaksi {$transaksiBarang->tipe_transaksi} barang {$barang->nama_barang} sejumlah {$transaksiBarang->jumlah} {$barang->satuan}{$statusMessage}",
                 'perubahan_data' => $transaksiBarang->toArray(),
                 'ip_address' => request()->ip(),
                 'user_agent' => request()->userAgent(),
@@ -60,12 +72,21 @@ class TransaksiBarangObserver
      */
     public function updated(TransaksiBarang $transaksiBarang): void
     {
+        // Log approval status changes
+        $description = "Mengubah transaksi barang {$transaksiBarang->kode_transaksi}";
+        
+        if ($transaksiBarang->wasChanged('approval_status')) {
+            $oldStatus = $transaksiBarang->getOriginal('approval_status');
+            $newStatus = $transaksiBarang->approval_status;
+            $description .= " - status approval berubah dari {$oldStatus} menjadi {$newStatus}";
+        }
+
         LogAktivitas::create([
             'user_id' => $transaksiBarang->user_id ?? auth()->id(),
             'jenis_aktivitas' => 'update',
             'nama_tabel' => 'transaksi_barang',
             'record_id' => $transaksiBarang->id,
-            'deskripsi' => "Mengubah transaksi barang {$transaksiBarang->kode_transaksi}",
+            'deskripsi' => $description,
             'perubahan_data' => [
                 'before' => $transaksiBarang->getOriginal(),
                 'after' => $transaksiBarang->getAttributes(),

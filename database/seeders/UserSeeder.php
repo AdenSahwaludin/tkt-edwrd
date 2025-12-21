@@ -34,14 +34,14 @@ class UserSeeder extends Seeder
         ]);
         $petugas->assignRole('Petugas Inventaris');
 
-        // Staff user with Staff role
-        $staff = User::create([
-            'name' => 'Staff',
-            'email' => 'staff@inventaris.test',
+        // Kepala Sekolah user with Kepala Sekolah role
+        $kepalaSekolah = User::create([
+            'name' => 'Kepala Sekolah',
+            'email' => 'kepala@inventaris.test',
             'password' => Hash::make('password'),
             'is_active' => true,
             'email_verified_at' => now(),
         ]);
-        $staff->assignRole('Staff');
+        $kepalaSekolah->assignRole('Kepala Sekolah');
     }
 }
