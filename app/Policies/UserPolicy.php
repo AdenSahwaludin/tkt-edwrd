@@ -77,4 +77,12 @@ class UserPolicy
     {
         return $user->hasPermissionTo('delete_users');
     }
+
+    /**
+     * Determine whether the user can reset password for a user.
+     */
+    public function resetPassword(User $user, User $model): bool
+    {
+        return $user->hasPermissionTo('reset_password');
+    }
 }

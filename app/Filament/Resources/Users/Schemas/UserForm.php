@@ -4,9 +4,9 @@ namespace App\Filament\Resources\Users\Schemas;
 
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\MultiSelect;
-use Filament\Forms\Components\Section;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Spatie\Permission\Models\Role;
 
@@ -28,7 +28,8 @@ class UserForm
                             ->required()
                             ->maxLength(255),
                     ])
-                    ->columns(2),
+                    ->columns(2)
+                    ->columnSpanFull(),
                 Section::make('Keamanan')
                     ->schema([
                         TextInput::make('password')
@@ -41,7 +42,8 @@ class UserForm
                             ->default(true),
                         DateTimePicker::make('email_verified_at')
                             ->label('Email Diverifikasi Pada'),
-                    ]),
+                    ])
+                    ->columnSpanFull(),
                 Section::make('Peran & Izin')
                     ->schema([
                         MultiSelect::make('roles')
@@ -50,7 +52,8 @@ class UserForm
                             ->options(Role::pluck('name', 'id'))
                             ->helperText('Pilih satu atau lebih peran untuk pengguna ini.')
                             ->required(),
-                    ]),
+                    ])
+                    ->columnSpanFull(),
             ]);
     }
 }
