@@ -10,7 +10,7 @@ class UserSeeder extends Seeder
 {
     /**
      * Run the database seeds.
-     * Buat 3 pengguna dengan role berbeda untuk testing.
+     * Buat pengguna dengan role berbeda untuk testing.
      */
     public function run(): void
     {
@@ -24,7 +24,7 @@ class UserSeeder extends Seeder
         ]);
         $admin->assignRole('Admin Sistem');
 
-        // Petugas Inventaris user with Staff role
+        // Petugas Inventaris user with Petugas Inventaris role
         $petugas = User::create([
             'name' => 'Petugas Inventaris',
             'email' => 'petugas@inventaris.test',
@@ -32,16 +32,16 @@ class UserSeeder extends Seeder
             'is_active' => true,
             'email_verified_at' => now(),
         ]);
-        $petugas->assignRole('Staff');
+        $petugas->assignRole('Petugas Inventaris');
 
-        // Kepala Sekolah user with Staff role
-        $kepala = User::create([
-            'name' => 'Kepala Sekolah',
-            'email' => 'kepala@inventaris.test',
+        // Staff user with Staff role
+        $staff = User::create([
+            'name' => 'Staff',
+            'email' => 'staff@inventaris.test',
             'password' => Hash::make('password'),
             'is_active' => true,
             'email_verified_at' => now(),
         ]);
-        $kepala->assignRole('Staff');
+        $staff->assignRole('Staff');
     }
 }

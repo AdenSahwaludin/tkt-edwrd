@@ -20,6 +20,7 @@ class RolePermissionSeeder extends Seeder
         // Create Roles
         $adminRole = Role::firstOrCreate(['name' => 'Admin Sistem', 'guard_name' => 'web']);
         $staffRole = Role::firstOrCreate(['name' => 'Staff', 'guard_name' => 'web']);
+        $petugasInventarisRole = Role::firstOrCreate(['name' => 'Petugas Inventaris', 'guard_name' => 'web']);
 
         // === USER MANAGEMENT PERMISSIONS ===
         Permission::firstOrCreate(['name' => 'view_users', 'guard_name' => 'web']);
@@ -87,6 +88,28 @@ class RolePermissionSeeder extends Seeder
             'view_log_aktivitas',
             'view_dashboard',
             'view_laporan',
+        ]);
+
+        // Assign permissions to Petugas Inventaris role (based on use case diagram)
+        $petugasInventarisRole->syncPermissions([
+            // Data Barang Management
+            'view_barangs',
+            'create_barangs',
+            'edit_barangs',
+            'delete_barangs',
+            // Transaksi Barang (Incoming/Outgoing)
+            'view_transaksi_barangs',
+            'create_transaksi_barangs',
+            'edit_transaksi_barangs',
+            'delete_transaksi_barangs',
+            // Barang Rusak/Hilang (Damaged/Lost Items)
+            'view_barang_rusaks',
+            'create_barang_rusaks',
+            'edit_barang_rusaks',
+            // Reports & Dashboard
+            'view_laporan',
+            'view_dashboard',
+            'view_log_aktivitas',
         ]);
 
         // Assign Admin Sistem role to existing admin user if exists

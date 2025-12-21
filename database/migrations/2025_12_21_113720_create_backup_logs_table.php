@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('backup_logs', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained();
-            $table->string('filename');
+            $table->string('filename')->nullable(); // nullable for initial backup creation
             $table->string('format')->default('sql'); // sql, json
             $table->unsignedBigInteger('file_size')->nullable(); // in bytes
             $table->enum('status', ['success', 'failed', 'pending'])->default('pending');

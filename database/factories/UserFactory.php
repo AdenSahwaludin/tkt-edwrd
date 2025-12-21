@@ -41,4 +41,34 @@ class UserFactory extends Factory
             'email_verified_at' => null,
         ]);
     }
+
+    /**
+     * Create user with Petugas Inventaris role
+     */
+    public function petugasInventaris(): static
+    {
+        return $this->afterCreating(function ($user) {
+            $user->assignRole('Petugas Inventaris');
+        });
+    }
+
+    /**
+     * Create user with Staff role
+     */
+    public function staff(): static
+    {
+        return $this->afterCreating(function ($user) {
+            $user->assignRole('Staff');
+        });
+    }
+
+    /**
+     * Create user with Admin Sistem role
+     */
+    public function adminSistem(): static
+    {
+        return $this->afterCreating(function ($user) {
+            $user->assignRole('Admin Sistem');
+        });
+    }
 }
