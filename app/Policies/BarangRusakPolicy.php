@@ -13,7 +13,7 @@ class BarangRusakPolicy
      */
     public function viewAny(User $user): bool
     {
-        return true;
+        return $user->hasPermissionTo('view_barang_rusaks');
     }
 
     /**
@@ -21,7 +21,7 @@ class BarangRusakPolicy
      */
     public function view(User $user, BarangRusak $barangRusak): bool
     {
-        return true;
+        return $user->hasPermissionTo('view_barang_rusaks');
     }
 
     /**
@@ -29,7 +29,7 @@ class BarangRusakPolicy
      */
     public function create(User $user): bool
     {
-        return true;
+        return $user->hasPermissionTo('create_barang_rusaks');
     }
 
     /**
@@ -37,7 +37,7 @@ class BarangRusakPolicy
      */
     public function update(User $user, BarangRusak $barangRusak): bool
     {
-        return true;
+        return $user->hasPermissionTo('edit_barang_rusaks');
     }
 
     /**
@@ -45,7 +45,7 @@ class BarangRusakPolicy
      */
     public function delete(User $user, BarangRusak $barangRusak): bool
     {
-        return true;
+        return $user->hasPermissionTo('delete_barang_rusaks');
     }
 
     /**
@@ -53,7 +53,7 @@ class BarangRusakPolicy
      */
     public function deleteAny(User $user): bool
     {
-        return true;
+        return $user->hasPermissionTo('delete_barang_rusaks');
     }
 
     /**
@@ -61,7 +61,7 @@ class BarangRusakPolicy
      */
     public function restore(User $user, BarangRusak $barangRusak): bool
     {
-        return true;
+        return $user->hasPermissionTo('delete_barang_rusaks');
     }
 
     /**
@@ -69,6 +69,22 @@ class BarangRusakPolicy
      */
     public function forceDelete(User $user, BarangRusak $barangRusak): bool
     {
-        return true;
+        return $user->hasPermissionTo('delete_barang_rusaks');
+    }
+
+    /**
+     * Determine whether the user can restore any models.
+     */
+    public function restoreAny(User $user): bool
+    {
+        return $user->hasPermissionTo('delete_barang_rusaks');
+    }
+
+    /**
+     * Determine whether the user can permanently delete any models.
+     */
+    public function forceDeleteAny(User $user): bool
+    {
+        return $user->hasPermissionTo('delete_barang_rusaks');
     }
 }

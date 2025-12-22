@@ -3,14 +3,13 @@
 namespace App\Filament\Resources\TransaksiBarangs\Tables;
 
 use App\Models\TransaksiBarang;
+use Filament\Actions\Action;
+use Filament\Actions\BulkAction;
+use Filament\Actions\BulkActionGroup;
 use Filament\Forms\Components\Textarea;
 use Filament\Notifications\Notification;
 use Filament\Support\Enums\FontWeight;
-use Filament\Tables\Actions\Action;
-use Filament\Tables\Actions\BulkAction;
-use Filament\Tables\Actions\BulkActionGroup;
-use Filament\Tables\Actions\DeleteBulkAction;
-use Filament\Tables\Actions\EditAction;
+use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
@@ -159,8 +158,7 @@ class TransaksiBarangsTable
                             );
                     }),
             ])
-            ->recordActions([
-                EditAction::make(),
+            ->actions([
                 Action::make('approve')
                     ->label('Setujui')
                     ->icon('heroicon-o-check-circle')
@@ -259,7 +257,6 @@ class TransaksiBarangsTable
                         ->deselectRecordsAfterCompletion()
                         ->requiresConfirmation()
                         ->visible(fn (): bool => auth()->user()->hasPermissionTo('approve_transaksi_barangs')),
-                    DeleteBulkAction::make(),
                 ]),
             ]);
     }

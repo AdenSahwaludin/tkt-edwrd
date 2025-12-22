@@ -24,19 +24,19 @@ class KategoriPolicy
     }
 
     /**
-     * Hanya Admin dan Petugas Inventaris yang dapat menambah kategori.
+     * Hanya Admin yang dapat membuat kategori.
      */
     public function create(User $user): bool
     {
-        return $user->isAdmin() || $user->isPetugasInventaris();
+        return $user->hasPermissionTo('create_kategoris');
     }
 
     /**
-     * Hanya Admin dan Petugas Inventaris yang dapat mengubah kategori.
+     * Hanya Admin yang dapat mengubah kategori.
      */
     public function update(User $user, Kategori $kategori): bool
     {
-        return $user->isAdmin() || $user->isPetugasInventaris();
+        return $user->hasPermissionTo('edit_kategoris');
     }
 
     /**
@@ -44,7 +44,7 @@ class KategoriPolicy
      */
     public function delete(User $user, Kategori $kategori): bool
     {
-        return $user->isAdmin();
+        return $user->hasPermissionTo('delete_kategoris');
     }
 
     /**
@@ -52,7 +52,7 @@ class KategoriPolicy
      */
     public function deleteAny(User $user): bool
     {
-        return $user->isAdmin();
+        return $user->hasPermissionTo('delete_kategoris');
     }
 
     /**
@@ -60,7 +60,7 @@ class KategoriPolicy
      */
     public function restore(User $user, Kategori $kategori): bool
     {
-        return $user->isAdmin();
+        return $user->hasPermissionTo('delete_kategoris');
     }
 
     /**
@@ -68,7 +68,7 @@ class KategoriPolicy
      */
     public function restoreAny(User $user): bool
     {
-        return $user->isAdmin();
+        return $user->hasPermissionTo('delete_kategoris');
     }
 
     /**
@@ -76,7 +76,7 @@ class KategoriPolicy
      */
     public function forceDelete(User $user, Kategori $kategori): bool
     {
-        return $user->isAdmin();
+        return $user->hasPermissionTo('delete_kategoris');
     }
 
     /**
@@ -84,6 +84,6 @@ class KategoriPolicy
      */
     public function forceDeleteAny(User $user): bool
     {
-        return $user->isAdmin();
+        return $user->hasPermissionTo('delete_kategoris');
     }
 }

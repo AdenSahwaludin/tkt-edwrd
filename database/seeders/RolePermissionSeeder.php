@@ -19,7 +19,6 @@ class RolePermissionSeeder extends Seeder
 
         // Create Roles
         $adminRole = Role::firstOrCreate(['name' => 'Admin Sistem', 'guard_name' => 'web']);
-        $staffRole = Role::firstOrCreate(['name' => 'Staff', 'guard_name' => 'web']);
         $petugasInventarisRole = Role::firstOrCreate(['name' => 'Petugas Inventaris', 'guard_name' => 'web']);
         $kepalaSekolahRole = Role::firstOrCreate(['name' => 'Kepala Sekolah', 'guard_name' => 'web']);
 
@@ -63,6 +62,7 @@ class RolePermissionSeeder extends Seeder
 
         // === LOG AKTIVITAS PERMISSIONS ===
         Permission::firstOrCreate(['name' => 'view_log_aktivitas', 'guard_name' => 'web']);
+        Permission::firstOrCreate(['name' => 'delete_log_aktivitas', 'guard_name' => 'web']);
 
         // === DASHBOARD & LAPORAN PERMISSIONS ===
         Permission::firstOrCreate(['name' => 'view_dashboard', 'guard_name' => 'web']);
@@ -72,72 +72,98 @@ class RolePermissionSeeder extends Seeder
         Permission::firstOrCreate(['name' => 'backup_system', 'guard_name' => 'web']);
         Permission::firstOrCreate(['name' => 'restore_system', 'guard_name' => 'web']);
 
-        // Assign all permissions to Admin Sistem role
-        $adminRole->syncPermissions(Permission::all());
-
-        // Assign limited permissions to Staff role
-        $staffRole->syncPermissions([
+        // =============================================
+        // ADMIN SISTEM PERMISSIONS
+        // =============================================
+        // Admin: Kelola Akun Pengguna, Kelola Kategori, Log Aktivitas, Backup/Restore
+        $adminRole->syncPermissions([
+            // User Management
             'view_users',
+            'create_users',
+            'edit_users',
+            'delete_users',
+            'reset_password',
+            // Kategori Barang
             'view_kategoris',
-            'view_barangs',
-            'view_lokasis',
-            'view_transaksi_barangs',
-            'create_transaksi_barangs',
-            'edit_transaksi_barangs',
-            'view_barang_rusaks',
-            'create_barang_rusaks',
-            'edit_barang_rusaks',
+            'create_kategoris',
+            'edit_kategoris',
+            'delete_kategoris',
+            // Log Aktivitas
             'view_log_aktivitas',
+            'delete_log_aktivitas',
+            // Backup & Restore
+            'backup_system',
+            'restore_system',
+            // Dashboard & Laporan
             'view_dashboard',
             'view_laporan',
         ]);
 
-        // Assign permissions to Petugas Inventaris role (based on use case diagram)
+        // =============================================
+        // PETUGAS INVENTARIS PERMISSIONS
+        // =============================================
+        // Petugas: Kelola Barang, Barang Rusak, Transaksi Masuk/Keluar, Dashboard Laporan
         $petugasInventarisRole->syncPermissions([
             // Data Barang Management
             'view_barangs',
             'create_barangs',
             'edit_barangs',
             'delete_barangs',
-            // Transaksi Barang (Incoming/Outgoing)
+            // Barang Rusak
+            'view_barang_rusaks',
+            'create_barang_rusaks',
+            'edit_barang_rusaks',
+            'delete_barang_rusaks',
+            // Transaksi Barang (Masuk & Keluar)
             'view_transaksi_barangs',
             'create_transaksi_barangs',
             'edit_transaksi_barangs',
             'delete_transaksi_barangs',
-            // Barang Rusak/Hilang (Damaged/Lost Items)
-            'view_barang_rusaks',
-            'create_barang_rusaks',
-            'edit_barang_rusaks',
-            // Reports & Dashboard
-            'view_laporan',
+            // Dashboard & Laporan
             'view_dashboard',
-            'view_log_aktivitas',
+            'view_laporan',
         ]);
 
-        // Assign permissions to Kepala Sekolah role (based on use case diagram)
+        // =============================================
+        // KEPALA SEKOLAH PERMISSIONS
+        // =============================================
+        // Kepala Sekolah: Dashboard Laporan, View Barang/Barang Rusak, Approve Permintaan
         $kepalaSekolahRole->syncPermissions([
+            // Dashboard & Laporan
             'view_dashboard',
             'view_laporan',
+            // View Only: Barang & Barang Rusak
             'view_barangs',
             'view_barang_rusaks',
+            // Transaksi: View + Approve
             'view_transaksi_barangs',
             'approve_transaksi_barangs',
         ]);
 
-        // Assign Admin Sistem role to existing admin user if exists
+        // Assign roles to existing users
         $adminUser = User::where('email', 'admin@inventaris.test')->first();
         if ($adminUser) {
-            $adminUser->assignRole('Admin Sistem');
+            $adminUser->syncRoles(['Admin Sistem']);
             $this->command->info("✓ Role 'Admin Sistem' assigned to {$adminUser->name}");
         }
 
-        // Assign Staff role to other users if exists
-        User::where('email', '!=', 'admin@inventaris.test')
-            ->whereDoesntHave('roles')
-            ->each(function ($user) use ($staffRole) {
-                $user->assignRole('Staff');
-            });
+        $petugasUser = User::where('email', 'petugas@inventaris.test')->first();
+        if ($petugasUser) {
+            $petugasUser->syncRoles(['Petugas Inventaris']);
+            $this->command->info("✓ Role 'Petugas Inventaris' assigned to {$petugasUser->name}");
+        }
+
+        $kepalaUser = User::where('email', 'kepala@inventaris.test')->first();
+        if ($kepalaUser) {
+            $kepalaUser->syncRoles(['Kepala Sekolah']);
+            $this->command->info("✓ Role 'Kepala Sekolah' assigned to {$kepalaUser->name}");
+        }
 
         $this->command->info('✓ Roles and Permissions seeded successfully!');
+        $this->command->info('');
+        $this->command->info('📋 Role Summary:');
+        $this->command->info('  • Admin Sistem: User Management, Kategori, Log, Backup/Restore');
+        $this->command->info('  • Petugas Inventaris: Barang, Barang Rusak, Transaksi, Dashboard');
+        $this->command->info('  • Kepala Sekolah: Dashboard, View Barang, Approve Transaksi');
     }
 }

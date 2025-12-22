@@ -24,56 +24,71 @@ class TransaksiBarangPolicy
     }
 
     /**
-     * Hanya Admin dan Petugas Inventaris yang dapat membuat transaksi.
+     * Petugas Inventaris yang dapat membuat transaksi.
      */
     public function create(User $user): bool
     {
-        return $user->isAdmin() || $user->isPetugasInventaris();
+        return $user->hasPermissionTo('create_transaksi_barangs');
     }
 
     /**
-     * Hanya Admin yang dapat mengubah transaksi (untuk koreksi data).
+     * Petugas Inventaris yang dapat mengubah transaksi.
      */
     public function update(User $user, TransaksiBarang $transaksiBarang): bool
     {
-        return $user->isAdmin();
+        return $user->hasPermissionTo('edit_transaksi_barangs');
     }
 
     /**
-     * Hanya Admin yang dapat menghapus transaksi.
+     * Petugas Inventaris yang dapat menghapus transaksi.
      */
     public function delete(User $user, TransaksiBarang $transaksiBarang): bool
     {
-        return $user->isAdmin();
+        return $user->hasPermissionTo('delete_transaksi_barangs');
     }
 
     /**
-     * Hanya Admin yang dapat menghapus multiple transaksi.
+     * Petugas Inventaris yang dapat menghapus multiple transaksi.
      */
     public function deleteAny(User $user): bool
     {
-        return $user->isAdmin();
+        return $user->hasPermissionTo('delete_transaksi_barangs');
     }
 
     /**
-     * Hanya Admin yang dapat restore transaksi.
+     * Petugas Inventaris yang dapat restore transaksi.
      */
     public function restore(User $user, TransaksiBarang $transaksiBarang): bool
     {
-        return $user->isAdmin();
+        return $user->hasPermissionTo('delete_transaksi_barangs');
     }
 
     /**
-     * Hanya Admin yang dapat force delete transaksi.
+     * Petugas Inventaris yang dapat restore multiple transaksi.
+     */
+    public function restoreAny(User $user): bool
+    {
+        return $user->hasPermissionTo('delete_transaksi_barangs');
+    }
+
+    /**
+     * Petugas Inventaris yang dapat force delete transaksi.
      */
     public function forceDelete(User $user, TransaksiBarang $transaksiBarang): bool
     {
-        return $user->isAdmin();
+        return $user->hasPermissionTo('delete_transaksi_barangs');
     }
 
     /**
-     * Hanya user dengan permission approve_transaksi_barangs yang dapat menyetujui transaksi.
-     * Biasanya Kepala Sekolah dan Admin.
+     * Petugas Inventaris yang dapat force delete multiple transaksi.
+     */
+    public function forceDeleteAny(User $user): bool
+    {
+        return $user->hasPermissionTo('delete_transaksi_barangs');
+    }
+
+    /**
+     * Kepala Sekolah yang dapat menyetujui transaksi masuk.
      */
     public function approve(User $user, TransaksiBarang $transaksiBarang): bool
     {

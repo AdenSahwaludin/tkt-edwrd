@@ -5,40 +5,43 @@ use App\Models\Kategori;
 use App\Models\Lokasi;
 use App\Models\TransaksiBarang;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-
-uses(RefreshDatabase::class);
 
 beforeEach(function () {
-    $this->user = User::factory()->create();
+    $this->user = User::firstOrCreate(
+        ['email' => 'testuser@example.com'],
+        ['name' => 'Test User', 'password' => bcrypt('password')]
+    );
     $this->actingAs($this->user);
 
-    $kategori = Kategori::create([
-        'kode_kategori' => 'ELE',
-        'nama_kategori' => 'Elektronik',
-        'deskripsi' => 'Kategori elektronik',
-    ]);
+    $timestamp = now()->timestamp;
 
-    $lokasi = Lokasi::create([
-        'kode_lokasi' => 'GU',
-        'nama_lokasi' => 'Ruang Guru',
-        'alamat' => 'Lantai 1',
-    ]);
+    $this->kategori = Kategori::firstOrCreate(
+        ['nama_kategori' => 'Elektronik'],
+        ['deskripsi' => 'Kategori elektronik']
+    );
 
-    $this->barang = Barang::create([
-        'kode_barang' => 'ELE-KO-GU-001',
-        'nama_barang' => 'Komputer',
-        'kategori_id' => $kategori->id,
-        'lokasi_id' => $lokasi->id,
-        'satuan' => 'unit',
-        'harga_satuan' => 5000000,
-        'jumlah_stok' => 100,
-    ]);
+    $this->lokasi = Lokasi::firstOrCreate(
+        ['nama_lokasi' => 'Ruang Guru'],
+        ['alamat' => 'Lantai 1']
+    );
+
+    $this->barang = Barang::firstOrCreate(
+        ['kode_barang' => "ELE-KO-GU-{$timestamp}"],
+        [
+            'nama_barang' => 'Komputer',
+            'kategori_id' => $this->kategori->id,
+            'lokasi_id' => $this->lokasi->id,
+            'satuan' => 'unit',
+            'harga_satuan' => 5000000,
+            'jumlah_stok' => 100,
+        ]
+    );
 });
 
 it('can create transaksi masuk', function () {
+    $timestamp = now()->timestamp;
     $transaksi = TransaksiBarang::create([
-        'kode_transaksi' => 'TM-20251218-001',
+        'kode_transaksi' => "TM-{$timestamp}-001",
         'barang_id' => $this->barang->id,
         'tipe_transaksi' => 'masuk',
         'jumlah' => 10,
@@ -52,8 +55,9 @@ it('can create transaksi masuk', function () {
 });
 
 it('can create transaksi keluar', function () {
+    $timestamp = now()->timestamp;
     $transaksi = TransaksiBarang::create([
-        'kode_transaksi' => 'TK-20251218-001',
+        'kode_transaksi' => "TK-{$timestamp}-001",
         'barang_id' => $this->barang->id,
         'tipe_transaksi' => 'keluar',
         'jumlah' => 5,
@@ -67,8 +71,9 @@ it('can create transaksi keluar', function () {
 });
 
 it('saves penanggung_jawab field correctly', function () {
+    $timestamp = now()->timestamp;
     $transaksi = TransaksiBarang::create([
-        'kode_transaksi' => 'TM-20251218-002',
+        'kode_transaksi' => "TM-{$timestamp}-002",
         'barang_id' => $this->barang->id,
         'tipe_transaksi' => 'masuk',
         'jumlah' => 10,
@@ -81,8 +86,9 @@ it('saves penanggung_jawab field correctly', function () {
 });
 
 it('saves keterangan field correctly', function () {
+    $timestamp = now()->timestamp;
     $transaksi = TransaksiBarang::create([
-        'kode_transaksi' => 'TM-20251218-003',
+        'kode_transaksi' => "TM-{$timestamp}-003",
         'barang_id' => $this->barang->id,
         'tipe_transaksi' => 'masuk',
         'jumlah' => 10,
@@ -95,8 +101,9 @@ it('saves keterangan field correctly', function () {
 });
 
 it('has correct database column names', function () {
+    $timestamp = now()->timestamp;
     $transaksi = TransaksiBarang::create([
-        'kode_transaksi' => 'TM-20251218-004',
+        'kode_transaksi' => "TM-{$timestamp}-004",
         'barang_id' => $this->barang->id,
         'tipe_transaksi' => 'masuk',
         'jumlah' => 10,
@@ -116,9 +123,10 @@ it('has correct database column names', function () {
 
 it('updates stock when transaksi masuk is created', function () {
     $initialStock = $this->barang->jumlah_stok;
+    $timestamp = now()->timestamp;
 
     TransaksiBarang::create([
-        'kode_transaksi' => 'TM-20251218-005',
+        'kode_transaksi' => "TM-{$timestamp}-005",
         'barang_id' => $this->barang->id,
         'tipe_transaksi' => 'masuk',
         'jumlah' => 10,
@@ -133,9 +141,10 @@ it('updates stock when transaksi masuk is created', function () {
 
 it('updates stock when transaksi keluar is created', function () {
     $initialStock = $this->barang->jumlah_stok;
+    $timestamp = now()->timestamp;
 
     TransaksiBarang::create([
-        'kode_transaksi' => 'TK-20251218-006',
+        'kode_transaksi' => "TK-{$timestamp}-006",
         'barang_id' => $this->barang->id,
         'tipe_transaksi' => 'keluar',
         'jumlah' => 5,

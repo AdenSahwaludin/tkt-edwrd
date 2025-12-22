@@ -24,66 +24,66 @@ class BarangPolicy
     }
 
     /**
-     * Hanya Admin dan Petugas Inventaris yang dapat menambah barang.
+     * Petugas Inventaris yang dapat menambah barang.
      */
     public function create(User $user): bool
     {
-        return $user->isAdmin() || $user->isPetugasInventaris();
+        return $user->hasPermissionTo('create_barangs');
     }
 
     /**
-     * Hanya Admin dan Petugas Inventaris yang dapat mengubah barang.
+     * Petugas Inventaris yang dapat mengubah barang.
      */
     public function update(User $user, Barang $barang): bool
     {
-        return $user->isAdmin() || $user->isPetugasInventaris();
+        return $user->hasPermissionTo('edit_barangs');
     }
 
     /**
-     * Hanya Admin yang dapat menghapus barang.
+     * Petugas Inventaris yang dapat menghapus barang.
      */
     public function delete(User $user, Barang $barang): bool
     {
-        return $user->isAdmin();
+        return $user->hasPermissionTo('delete_barangs');
     }
 
     /**
-     * Hanya Admin yang dapat menghapus multiple barang.
+     * Petugas Inventaris yang dapat menghapus multiple barang.
      */
     public function deleteAny(User $user): bool
     {
-        return $user->isAdmin();
+        return $user->hasPermissionTo('delete_barangs');
     }
 
     /**
-     * Hanya Admin yang dapat restore barang.
+     * Petugas Inventaris yang dapat restore barang.
      */
     public function restore(User $user, Barang $barang): bool
     {
-        return $user->isAdmin();
+        return $user->hasPermissionTo('delete_barangs');
     }
 
     /**
-     * Hanya Admin yang dapat restore multiple barang.
+     * Petugas Inventaris yang dapat restore multiple barang.
      */
     public function restoreAny(User $user): bool
     {
-        return $user->isAdmin();
+        return $user->hasPermissionTo('delete_barangs');
     }
 
     /**
-     * Hanya Admin yang dapat force delete barang.
+     * Petugas Inventaris yang dapat force delete barang.
      */
     public function forceDelete(User $user, Barang $barang): bool
     {
-        return $user->isAdmin();
+        return $user->hasPermissionTo('delete_barangs');
     }
 
     /**
-     * Hanya Admin yang dapat force delete multiple barang.
+     * Petugas Inventaris yang dapat force delete multiple barang.
      */
     public function forceDeleteAny(User $user): bool
     {
-        return $user->isAdmin();
+        return $user->hasPermissionTo('delete_barangs');
     }
 }

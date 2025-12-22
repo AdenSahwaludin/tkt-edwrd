@@ -24,19 +24,19 @@ class LokasiPolicy
     }
 
     /**
-     * Hanya Admin dan Petugas Inventaris yang dapat menambah lokasi.
+     * Hanya Admin yang dapat membuat lokasi.
      */
     public function create(User $user): bool
     {
-        return $user->isAdmin() || $user->isPetugasInventaris();
+        return $user->hasPermissionTo('create_lokasis');
     }
 
     /**
-     * Hanya Admin dan Petugas Inventaris yang dapat mengubah lokasi.
+     * Hanya Admin yang dapat mengubah lokasi.
      */
     public function update(User $user, Lokasi $lokasi): bool
     {
-        return $user->isAdmin() || $user->isPetugasInventaris();
+        return $user->hasPermissionTo('edit_lokasis');
     }
 
     /**
@@ -44,7 +44,7 @@ class LokasiPolicy
      */
     public function delete(User $user, Lokasi $lokasi): bool
     {
-        return $user->isAdmin();
+        return $user->hasPermissionTo('delete_lokasis');
     }
 
     /**
@@ -52,7 +52,7 @@ class LokasiPolicy
      */
     public function deleteAny(User $user): bool
     {
-        return $user->isAdmin();
+        return $user->hasPermissionTo('delete_lokasis');
     }
 
     /**
@@ -60,7 +60,7 @@ class LokasiPolicy
      */
     public function restore(User $user, Lokasi $lokasi): bool
     {
-        return $user->isAdmin();
+        return $user->hasPermissionTo('delete_lokasis');
     }
 
     /**
@@ -68,7 +68,7 @@ class LokasiPolicy
      */
     public function restoreAny(User $user): bool
     {
-        return $user->isAdmin();
+        return $user->hasPermissionTo('delete_lokasis');
     }
 
     /**
@@ -76,7 +76,15 @@ class LokasiPolicy
      */
     public function forceDelete(User $user, Lokasi $lokasi): bool
     {
-        return $user->isAdmin();
+        return $user->hasPermissionTo('delete_lokasis');
+    }
+
+    /**
+     * Hanya Admin yang dapat force delete multiple lokasi.
+     */
+    public function forceDeleteAny(User $user): bool
+    {
+        return $user->hasPermissionTo('delete_lokasis');
     }
 
     /**

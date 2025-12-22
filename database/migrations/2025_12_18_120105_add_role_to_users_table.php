@@ -13,14 +13,14 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->enum('role', ['admin', 'petugas_inventaris', 'kepala_sekolah'])
-                ->default('petugas_inventaris')
-                ->after('email');
-            $table->boolean('is_active')->default(true)->after('role');
+            // $table->enum('role', ['admin', 'petugas_inventaris', 'kepala_sekolah'])
+            //     ->default('petugas_inventaris')
+            //     ->after('email');
+            $table->boolean('is_active')->default(true);
             $table->softDeletes();
 
-            // Index untuk filtering berdasarkan role
-            $table->index('role');
+            // // Index untuk filtering berdasarkan role
+            // $table->index('role');
         });
     }
 
