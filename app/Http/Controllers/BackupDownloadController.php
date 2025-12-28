@@ -5,11 +5,12 @@ namespace App\Http\Controllers;
 use App\Models\BackupLog;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
-use Symfony\Component\HttpFoundation\StreamedResponse;
+use Illuminate\Support\Facades\Response;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class BackupDownloadController extends Controller
 {
-    public function download(int $id): StreamedResponse|string
+    public function download(int $id): BinaryFileResponse
     {
         // Check authorization
         if (! Auth::user()?->hasPermissionTo('backup_system')) {
@@ -25,11 +26,12 @@ class BackupDownloadController extends Controller
         $backupPath = storage_path('backups/'.$backupLog->filename);
 
         if (! File::exists($backupPath)) {
-            abort(404, 'Backup file not found on server');
+            abort(404, 'Backup file not found on server: '.$backupPath);
         }
 
-        return response()->download($backupPath, $backupLog->filename, [
+        return Response::download($backupPath, $backupLog->filename, [
             'Content-Type' => 'application/octet-stream',
+            'Content-Disposition' => 'attachment; filename="'.$backupLog->filename.'"',
         ]);
     }
 }

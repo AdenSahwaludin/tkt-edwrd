@@ -139,7 +139,11 @@ class BackupManager extends Page
                 throw new \Exception('File backup belum selesai atau gagal diproses.');
             }
 
-            shell_exec('cd "'.base_path().'" && php artisan db:restore '.escapeshellarg($backupLog->filename).' --no-interaction 2>&1');
+            // Use Artisan::call for proper restoration with force flag
+            \Illuminate\Support\Facades\Artisan::call('db:restore', [
+                'file' => $backupLog->filename,
+                '--force' => true,
+            ]);
 
             Notification::make()
                 ->title('Restore Berhasil')

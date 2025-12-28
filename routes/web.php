@@ -9,7 +9,7 @@ Route::get('/', function () {
 
 // Backup download route
 Route::get('/admin/backups/{id}/download', [BackupDownloadController::class, 'download'])
-    ->middleware('auth')
+    ->middleware(['web', 'auth:web'])
     ->name('backup.download');
 
 // Route::get('/', function () {

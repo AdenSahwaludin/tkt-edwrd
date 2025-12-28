@@ -36,7 +36,9 @@ class UserForm
                             ->label('Password')
                             ->password()
                             ->revealable()
-                            ->required(fn (string $operation): bool => $operation === 'create'),
+                            ->required(fn (string $operation): bool => $operation === 'create')
+                            ->dehydrated(fn (?string $state): bool => filled($state))
+                            ->dehydrateStateUsing(fn (string $state): string => bcrypt($state)),
                         Toggle::make('is_active')
                             ->label('Aktif')
                             ->default(true),

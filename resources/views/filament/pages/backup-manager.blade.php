@@ -70,6 +70,7 @@
                                 <td class="px-6 py-4 text-sm space-x-2">
                                     @if ($backup['status'] === 'success')
                                         <a href="{{ route('backup.download', ['id' => $backup['id']]) }}"
+                                            target="_blank"
                                             class="inline-flex items-center px-3 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700">
                                             <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor"
                                                 viewBox="0 0 24 24">

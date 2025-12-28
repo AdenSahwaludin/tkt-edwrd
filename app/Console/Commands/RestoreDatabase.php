@@ -12,7 +12,7 @@ class RestoreDatabase extends Command
      *
      * @var string
      */
-    protected $signature = 'db:restore {file}';
+    protected $signature = 'db:restore {file} {--force : Skip confirmation}';
 
     /**
      * The console command description.
@@ -37,35 +37,51 @@ class RestoreDatabase extends Command
                 return self::FAILURE;
             }
 
-            if (! $this->confirm('Restore database akan menghapus semua data saat ini. Lanjutkan?')) {
+            if (! $this->option('force') && ! $this->confirm('Restore database akan menghapus semua data saat ini. Lanjutkan?')) {
                 $this->info('✗ Restore dibatalkan');
 
                 return self::FAILURE;
             }
 
-            // Gunakan mysql
-            $database = config('database.connections.mysql.database');
-            $host = config('database.connections.mysql.host');
-            $username = config('database.connections.mysql.username');
-            $password = config('database.connections.mysql.password');
+            // Baca SQL file dan execute queries
+            $sql = File::get($filepath);
 
-            $command = sprintf(
-                'mysql --user=%s --password=%s --host=%s %s < %s',
-                escapeshellarg($username),
-                escapeshellarg($password),
-                escapeshellarg($host),
-                escapeshellarg($database),
-                escapeshellarg($filepath)
+            // Split by semicolon and filter empty queries
+            $queries = array_filter(
+                array_map('trim', explode(';', $sql)),
+                fn ($query) => ! empty($query)
             );
 
-            exec($command, $output, $status);
+            try {
+                // Disable foreign key checks temporarily
+                \DB::statement('SET FOREIGN_KEY_CHECKS=0');
 
-            if ($status === 0) {
+                // Execute setiap query
+                // Note: DDL statements (CREATE/DROP TABLE) will auto-commit, so we don't wrap in transaction
+                foreach ($queries as $query) {
+                    try {
+                        \DB::statement($query);
+                    } catch (\Exception $e) {
+                        // If a query fails, log it but continue
+                        $this->warn('Query error: '.$e->getMessage());
+                        throw $e;
+                    }
+                }
+
+                // Re-enable foreign key checks
+                \DB::statement('SET FOREIGN_KEY_CHECKS=1');
+
                 $this->info("✓ Database restore berhasil dari: {$filename}");
 
                 return self::SUCCESS;
-            } else {
-                $this->error('✗ Gagal melakukan restore database');
+            } catch (\Exception $e) {
+                // Try to re-enable foreign key checks on error
+                try {
+                    \DB::statement('SET FOREIGN_KEY_CHECKS=1');
+                } catch (\Exception $ignored) {
+                }
+
+                $this->error('✗ Error saat restore: '.$e->getMessage());
 
                 return self::FAILURE;
             }
