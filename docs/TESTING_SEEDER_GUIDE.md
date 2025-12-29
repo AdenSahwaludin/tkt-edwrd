@@ -16,6 +16,7 @@ Seeder diatur dalam urutan yang tepat untuk menghindari foreign key constraint e
 ## Perintah Seeding
 
 ### Fresh Seed (Drop semua tabel dan seed ulang)
+
 ```bash
 php artisan migrate:fresh --seed
 # atau dengan --no-interaction untuk CI/CD
@@ -23,11 +24,13 @@ php artisan migrate:fresh --seed --no-interaction
 ```
 
 ### Seed Tanpa Drop
+
 ```bash
 php artisan db:seed
 ```
 
 ### Seed Seeder Spesifik
+
 ```bash
 # Seed hanya kategori dan lokasi
 php artisan db:seed --class=KategoriLokasiSeeder
@@ -42,83 +45,99 @@ php artisan db:seed --class=TransaksiBarangTestSeeder
 ## Factory Yang Tersedia
 
 ### 1. UserFactory
+
 **File:** `database/factories/UserFactory.php`
 
 **Method:**
-- `petugasInventaris()` - Create user dengan role Petugas Inventaris
+
+-   `petugasInventaris()` - Create user dengan role Petugas Inventaris
 
 **Contoh penggunaan:**
+
 ```php
 User::factory(5)->create(); // Create 5 users
 User::factory()->petugasInventaris()->create(); // User dengan role spesifik
 ```
 
 ### 2. KategoriFactory
+
 **File:** `database/factories/KategoriFactory.php`
 
 **Generate:** Kategori dengan nama acak dari daftar kategori sekolah
 
 **Contoh penggunaan:**
+
 ```php
 Kategori::factory(10)->create(); // Create 10 kategori
 ```
 
 ### 3. LokasiFactory
+
 **File:** `database/factories/LokasiFactory.php`
 
 **Generate:** Lokasi dengan nama, gedung, lantai, dan keterangan acak
 
 **Contoh penggunaan:**
+
 ```php
 Lokasi::factory(5)->create(); // Create 5 lokasi
 ```
 
 ### 4. BarangFactory
+
 **File:** `database/factories/BarangFactory.php`
 
 **Generate:** Barang dengan relasi ke Kategori dan Lokasi
 
 **Fields yang di-generate:**
-- Kode barang otomatis (BRG000001, BRG000002, dst)
-- Nama barang random
-- Kategori random
-- Lokasi random
-- Stok 5-200
-- Harga 10.000-500.000
-- Status: baik/rusak/hilang
-- Merk, satuan, tanggal pembelian
+
+-   Kode barang otomatis (BRG000001, BRG000002, dst)
+-   Nama barang random
+-   Kategori random
+-   Lokasi random
+-   Stok 5-200
+-   Harga 10.000-500.000
+-   Status: baik/rusak/hilang
+-   Merk, satuan, tanggal pembelian
 
 **Contoh penggunaan:**
+
 ```php
 Barang::factory(30)->create(); // Create 30 barang
 Barang::factory(1)->create(); // Create 1 barang
 ```
 
 ### 5. TransaksiBarangFactory
+
 **File:** `database/factories/TransaksiBarangFactory.php`
 
 **Method:**
-- `masuk()` - Transaction type = masuk (input)
-- `keluar()` - Transaction type = keluar (output)
-- `pending()` - Status = pending
-- `approved()` - Status = approved dengan approved_by dan approved_at
+
+-   `masuk()` - Transaction type = masuk (input)
+-   `keluar()` - Transaction type = keluar (output)
+-   `pending()` - Status = pending
+-   `approved()` - Status = approved dengan approved_by dan approved_at
 
 **Contoh penggunaan:**
+
 ```php
 TransaksiBarang::factory(10)->masuk()->create(); // 10 transaksi masuk
 TransaksiBarang::factory(5)->keluar()->approved()->create(); // 5 transaksi keluar approved
 ```
 
 ### 6. LogAktivitasFactory
+
 **File:** `database/factories/LogAktivitasFactory.php`
 
 **Method:**
-- `createActivity()` - Activity = create
-- `updateActivity()` - Activity = update
-- `deleteActivity()` - Activity = delete
-- `login()` - Activity = login
+
+-   `createActivity()` - Activity = create
+-   `updateActivity()` - Activity = update
+-   `deleteActivity()` - Activity = delete
+-   `login()` - Activity = login
 
 **Contoh penggunaan:**
+
 ```php
 LogAktivitas::factory(20)->createActivity()->create(); // 20 create logs
 LogAktivitas::factory(15)->login()->create(); // 15 login logs
@@ -166,21 +185,24 @@ Log Aktivitas: 60+
 
 ## Login Credentials untuk Testing
 
-| Email | Password | Role |
-|-------|----------|------|
-| admin@inventaris.test | password | Admin Sistem |
+| Email                   | Password | Role               |
+| ----------------------- | -------- | ------------------ |
+| admin@inventaris.test   | password | Admin Sistem       |
 | petugas@inventaris.test | password | Petugas Inventaris |
-| kepala@inventaris.test | password | Kepala Sekolah |
+| kepala@inventaris.test  | password | Kepala Sekolah     |
 
 ## Tips Testing
 
 ### 1. Reset Database dan Seed
+
 ```bash
 php artisan migrate:fresh --seed
 ```
 
 ### 2. Seed Spesifik Tabel Saja
+
 Jika hanya ingin menambah data tanpa menghapus existing data:
+
 ```bash
 # Tambah 20 barang baru
 php artisan tinker
@@ -188,6 +210,7 @@ php artisan tinker
 ```
 
 ### 3. Buat Test Data Custom
+
 ```bash
 php artisan tinker
 # Create kategori
@@ -204,6 +227,7 @@ php artisan tinker
 ```
 
 ### 4. Query Data untuk Verifikasi
+
 ```bash
 php artisan tinker
 >>> User::with('roles')->get()
@@ -213,6 +237,7 @@ php artisan tinker
 ```
 
 ### 5. Run Tests
+
 ```bash
 # Run semua test
 php artisan test
@@ -227,7 +252,9 @@ php artisan test --filter=testCreateBarang
 ## Troubleshooting
 
 ### Error: "Foreign key constraint fails"
+
 Pastikan seeders dijalankan dalam urutan yang benar:
+
 1. Roles/Permissions
 2. Users
 3. Kategori/Lokasi (master data)
@@ -236,12 +263,16 @@ Pastikan seeders dijalankan dalam urutan yang benar:
 6. Log (FK ke User)
 
 ### Error: "Stok tidak mencukupi"
+
 Ini terjadi saat membuat transaksi keluar tanpa stok. Solusi:
-- Buat transaksi masuk dulu (sudah ditangani di TransaksiBarangTestSeeder)
-- Atau disable observer saat seeding jika diperlukan
+
+-   Buat transaksi masuk dulu (sudah ditangani di TransaksiBarangTestSeeder)
+-   Atau disable observer saat seeding jika diperlukan
 
 ### Database Locked
+
 Jalankan:
+
 ```bash
 php artisan migrate:fresh --seed
 # bukan migrate:rollback
@@ -252,11 +283,13 @@ php artisan migrate:fresh --seed
 Jika ingin menambah seeder baru:
 
 1. Create seeder file:
+
 ```bash
 php artisan make:seeder CustomDataSeeder
 ```
 
 2. Edit `DatabaseSeeder.php`:
+
 ```php
 public function run(): void
 {
@@ -268,6 +301,7 @@ public function run(): void
 ```
 
 3. Run:
+
 ```bash
 php artisan migrate:fresh --seed
 ```
