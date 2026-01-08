@@ -15,7 +15,7 @@ use Spatie\Permission\Traits\HasRoles;
 class User extends Authenticatable implements FilamentUser
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, SoftDeletes, HasRoles;
+    use HasFactory, HasRoles, Notifiable, SoftDeletes;
 
     /**
      * The attributes that are mass assignable.
@@ -75,7 +75,7 @@ class User extends Authenticatable implements FilamentUser
      */
     public function isAdmin(): bool
     {
-        return $this->role === 'admin';
+        return $this->hasRole('Admin Sistem');
     }
 
     /**
@@ -83,7 +83,7 @@ class User extends Authenticatable implements FilamentUser
      */
     public function isPetugasInventaris(): bool
     {
-        return $this->role === 'petugas_inventaris';
+        return $this->hasRole('Petugas Inventaris');
     }
 
     /**
@@ -91,7 +91,7 @@ class User extends Authenticatable implements FilamentUser
      */
     public function isKepalaSekolah(): bool
     {
-        return $this->role === 'kepala_sekolah';
+        return $this->hasRole('Kepala Sekolah');
     }
 
     /**

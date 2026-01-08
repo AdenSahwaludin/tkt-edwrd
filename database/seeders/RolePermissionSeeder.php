@@ -73,9 +73,9 @@ class RolePermissionSeeder extends Seeder
         Permission::firstOrCreate(['name' => 'restore_system', 'guard_name' => 'web']);
 
         // =============================================
-        // ADMIN SISTEM PERMISSIONS
+        // ADMIN SISTEM PERMISSIONS (FULL ACCESS)
         // =============================================
-        // Admin: Kelola Akun Pengguna, Kelola Kategori, Log Aktivitas, Backup/Restore
+        // Admin: Akses penuh ke semua menu dan fitur
         $adminRole->syncPermissions([
             // User Management
             'view_users',
@@ -88,6 +88,27 @@ class RolePermissionSeeder extends Seeder
             'create_kategoris',
             'edit_kategoris',
             'delete_kategoris',
+            // Barang
+            'view_barangs',
+            'create_barangs',
+            'edit_barangs',
+            'delete_barangs',
+            // Lokasi
+            'view_lokasis',
+            'create_lokasis',
+            'edit_lokasis',
+            'delete_lokasis',
+            // Barang Rusak
+            'view_barang_rusaks',
+            'create_barang_rusaks',
+            'edit_barang_rusaks',
+            'delete_barang_rusaks',
+            // Transaksi Barang
+            'view_transaksi_barangs',
+            'create_transaksi_barangs',
+            'edit_transaksi_barangs',
+            'delete_transaksi_barangs',
+            'approve_transaksi_barangs',
             // Log Aktivitas
             'view_log_aktivitas',
             'delete_log_aktivitas',

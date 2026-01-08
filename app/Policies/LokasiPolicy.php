@@ -86,12 +86,4 @@ class LokasiPolicy
     {
         return $user->hasPermissionTo('delete_lokasis');
     }
-
-    /**
-     * Hanya Admin yang dapat force delete multiple lokasi.
-     */
-    public function forceDeleteAny(User $user): bool
-    {
-        return $user->isAdmin();
-    }
 }
