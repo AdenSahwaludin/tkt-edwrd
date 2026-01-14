@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Barangs;
 
+use App\Filament\Resources\Barangs\Pages\AddLocation;
 use App\Filament\Resources\Barangs\Pages\CreateBarang;
 use App\Filament\Resources\Barangs\Pages\EditBarang;
 use App\Filament\Resources\Barangs\Pages\ListBarangs;
@@ -60,6 +61,7 @@ class BarangResource extends Resource
         return [
             'index' => ListBarangs::route('/'),
             'create' => CreateBarang::route('/create'),
+            'add-location' => AddLocation::route('/{record}/add-location'),
             'view' => ViewBarang::route('/{record}'),
             'edit' => EditBarang::route('/{record}/edit'),
         ];
