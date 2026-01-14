@@ -122,7 +122,9 @@ class ApprovalTransaksiResource extends Resource
                                 'approval_notes' => $data['approval_notes'] ?? null,
                             ]);
 
-                            $record->barang->increment('jumlah_stok', $record->jumlah);
+                            if ($record->barang) {
+                                $record->barang->increment('jumlah_stok', $record->jumlah);
+                            }
                         });
 
                         Notification::make()

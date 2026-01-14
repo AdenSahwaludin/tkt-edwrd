@@ -9,7 +9,6 @@ use Filament\Actions\BulkActionGroup;
 use Filament\Forms\Components\Textarea;
 use Filament\Notifications\Notification;
 use Filament\Support\Enums\FontWeight;
-use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
@@ -179,7 +178,7 @@ class TransaksiBarangsTable
                             ]);
 
                             // Update stok barang for incoming transactions
-                            if ($record->isMasuk()) {
+                            if ($record->isMasuk() && $record->barang) {
                                 $record->barang->increment('jumlah_stok', $record->jumlah);
                             }
                         });
