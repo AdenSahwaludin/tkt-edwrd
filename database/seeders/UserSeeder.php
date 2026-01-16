@@ -17,7 +17,7 @@ class UserSeeder extends Seeder
         // Admin user with Admin Sistem role
         $admin = User::create([
             'name' => 'Administrator',
-            'email' => 'admin@inventaris.test',
+            'email' => 'admin@gmail.com',
             'password' => Hash::make('password'),
             'is_active' => true,
             'email_verified_at' => now(),
@@ -27,7 +27,7 @@ class UserSeeder extends Seeder
         // Petugas Inventaris user with Petugas Inventaris role
         $petugas = User::create([
             'name' => 'Petugas Inventaris',
-            'email' => 'petugas@inventaris.test',
+            'email' => 'petugas@gmail.com',
             'password' => Hash::make('password'),
             'is_active' => true,
             'email_verified_at' => now(),
@@ -37,7 +37,7 @@ class UserSeeder extends Seeder
         // Kepala Sekolah user with Kepala Sekolah role
         $kepalaSekolah = User::create([
             'name' => 'Kepala Sekolah',
-            'email' => 'kepala@inventaris.test',
+            'email' => 'kepala@gmail.com',
             'password' => Hash::make('password'),
             'is_active' => true,
             'email_verified_at' => now(),

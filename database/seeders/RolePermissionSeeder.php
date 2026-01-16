@@ -123,8 +123,18 @@ class RolePermissionSeeder extends Seeder
         // =============================================
         // PETUGAS INVENTARIS PERMISSIONS
         // =============================================
-        // Petugas: Kelola Barang, Barang Rusak, Transaksi Masuk/Keluar, Dashboard Laporan
+        // Petugas: Kelola Barang, Kategori, Lokasi, Barang Rusak, Transaksi Masuk/Keluar, Dashboard Laporan
         $petugasInventarisRole->syncPermissions([
+            // Kategori Management
+            'view_kategoris',
+            'create_kategoris',
+            'edit_kategoris',
+            'delete_kategoris',
+            // Lokasi Management
+            'view_lokasis',
+            'create_lokasis',
+            'edit_lokasis',
+            'delete_lokasis',
             // Data Barang Management
             'view_barangs',
             'create_barangs',
@@ -148,12 +158,14 @@ class RolePermissionSeeder extends Seeder
         // =============================================
         // KEPALA SEKOLAH PERMISSIONS
         // =============================================
-        // Kepala Sekolah: Dashboard Laporan, View Barang/Barang Rusak, Approve Permintaan
+        // Kepala Sekolah: Dashboard Laporan, View Barang/Kategori/Lokasi/Barang Rusak, Approve Permintaan
         $kepalaSekolahRole->syncPermissions([
             // Dashboard & Laporan
             'view_dashboard',
             'view_laporan',
-            // View Only: Barang & Barang Rusak
+            // View Only: Kategori, Lokasi, Barang & Barang Rusak
+            'view_kategoris',
+            'view_lokasis',
             'view_barangs',
             'view_barang_rusaks',
             // Transaksi: View + Approve
@@ -183,8 +195,8 @@ class RolePermissionSeeder extends Seeder
         $this->command->info('✓ Roles and Permissions seeded successfully!');
         $this->command->info('');
         $this->command->info('📋 Role Summary:');
-        $this->command->info('  • Admin Sistem: User Management, Kategori, Log, Backup/Restore');
-        $this->command->info('  • Petugas Inventaris: Barang, Barang Rusak, Transaksi, Dashboard');
-        $this->command->info('  • Kepala Sekolah: Dashboard, View Barang, Approve Transaksi');
+        $this->command->info('  • Admin Sistem: User Management, Kategori, Lokasi, Log, Backup/Restore');
+        $this->command->info('  • Petugas Inventaris: Kategori, Lokasi, Barang, Barang Rusak, Transaksi, Dashboard');
+        $this->command->info('  • Kepala Sekolah: Dashboard, View Kategori/Lokasi/Barang/Barang Rusak, Approve Transaksi');
     }
 }
