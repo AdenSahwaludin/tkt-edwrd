@@ -19,6 +19,11 @@ class CreateTransaksiBarang extends CreateRecord
         // Set user_id from authenticated user
         $data['user_id'] = Auth::id();
 
+        // Default tipe_transaksi for transaksi barang (only masuk)
+        if (empty($data['tipe_transaksi'])) {
+            $data['tipe_transaksi'] = 'masuk';
+        }
+
         // Generate kode_transaksi
         $data['kode_transaksi'] = $this->generateKodeTransaksi($data['tipe_transaksi']);
 

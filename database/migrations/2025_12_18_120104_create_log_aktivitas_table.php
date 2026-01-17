@@ -17,7 +17,7 @@ return new class extends Migration
             $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
             $table->enum('jenis_aktivitas', ['login', 'logout', 'create', 'update', 'delete', 'view']);
             $table->string('nama_tabel', 100)->nullable()->comment('Nama tabel yang terpengaruh');
-            $table->unsignedBigInteger('record_id')->nullable()->comment('ID record yang terpengaruh');
+            $table->string('record_id', 50)->nullable()->comment('ID record yang terpengaruh (support string ID)');
             $table->text('deskripsi');
             $table->json('perubahan_data')->nullable()->comment('Data perubahan dalam format JSON');
             $table->string('ip_address', 45)->nullable();

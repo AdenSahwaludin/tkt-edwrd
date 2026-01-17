@@ -23,7 +23,7 @@ class ViewBarang extends ViewRecord
                             ->schema([
                                 Placeholder::make('kode_barang')
                                     ->label('Kode Barang')
-                                    ->content(fn ($record) => $record->kode_barang),
+                                    ->content(fn ($record) => $record->id),
 
                                 Placeholder::make('nama_barang')
                                     ->label('Nama Barang')
@@ -44,17 +44,17 @@ class ViewBarang extends ViewRecord
                     ->schema([
                         Group::make()
                             ->schema([
-                                Placeholder::make('jumlah_stok')
-                                    ->label('Jumlah Stok')
-                                    ->content(fn ($record) => $record->jumlah_stok.' unit'),
+                                Placeholder::make('total_stok')
+                                    ->label('Total Stok')
+                                    ->content(fn ($record) => $record->total_stok.' '.$record->satuan),
 
-                                Placeholder::make('reorder_point')
-                                    ->label('Reorder Point (ROP)')
-                                    ->content(fn ($record) => $record->reorder_point.' unit'),
+                                Placeholder::make('lokasi_count')
+                                    ->label('Jumlah Lokasi')
+                                    ->content(fn ($record) => $record->stokLokasi()->count().' lokasi'),
 
                                 Placeholder::make('harga_satuan')
                                     ->label('Harga Satuan')
-                                    ->content(fn ($record) => 'Rp '.number_format($record->harga_satuan, 0, ',', '.')),
+                                    ->content(fn ($record) => $record->harga_satuan ? 'Rp '.number_format($record->harga_satuan, 0, ',', '.') : '-'),
 
                                 Placeholder::make('nilai_total')
                                     ->label('Nilai Total Inventaris')

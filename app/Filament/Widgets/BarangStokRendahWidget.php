@@ -2,7 +2,7 @@
 
 namespace App\Filament\Widgets;
 
-use App\Models\Barang;
+use App\Models\StokLokasi;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Filament\Widgets\TableWidget as BaseWidget;
@@ -18,48 +18,44 @@ class BarangStokRendahWidget extends BaseWidget
      */
     public function getHeading(): string
     {
-        return '⚠️ Peringatan Stok Rendah (ROP)';
+        return '⚠️ Peringatan Stok Rendah per Lokasi';
     }
 
     /**
-     * Query barang dengan stok rendah (jumlah_stok <= reorder_point).
+     * Query stok lokasi dengan stok rendah (stok <= 5).
      */
     public function table(Table $table): Table
     {
         return $table
             ->query(
-                Barang::query()
-                    ->stokRendah()
-                    ->with(['kategori', 'lokasi'])
-                    ->orderBy('jumlah_stok', 'asc')
+                StokLokasi::query()
+                    ->with(['barang.kategori', 'lokasi'])
+                    ->where('stok', '<=', 5)
+                    ->where('stok', '>', 0)
+                    ->orderBy('stok', 'asc')
             )
             ->columns([
-                TextColumn::make('kode_barang')
+                TextColumn::make('barang.id')
                     ->label('Kode Barang')
                     ->searchable()
                     ->sortable(),
-                TextColumn::make('nama_barang')
+                TextColumn::make('barang.nama_barang')
                     ->label('Nama Barang')
                     ->searchable()
                     ->sortable()
                     ->weight('bold'),
-                TextColumn::make('kategori.nama_kategori')
+                TextColumn::make('barang.kategori.nama_kategori')
                     ->label('Kategori')
                     ->sortable(),
                 TextColumn::make('lokasi.nama_lokasi')
                     ->label('Lokasi')
                     ->sortable(),
-                TextColumn::make('jumlah_stok')
+                TextColumn::make('stok')
                     ->label('Stok Saat Ini')
                     ->badge()
-                    ->color('danger')
-                    ->suffix(fn (Barang $record) => " {$record->satuan}"),
-                TextColumn::make('reorder_point')
-                    ->label('Batas Minimum (ROP)')
-                    ->badge()
-                    ->color('warning')
-                    ->suffix(fn (Barang $record) => " {$record->satuan}"),
-                TextColumn::make('status')
+                    ->color(fn ($state) => $state <= 2 ? 'danger' : 'warning')
+                    ->suffix(fn ($record) => " {$record->barang->satuan}"),
+                TextColumn::make('barang.status')
                     ->label('Status')
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {

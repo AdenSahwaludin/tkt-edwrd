@@ -20,11 +20,14 @@ class BarangsTable
     {
         return $table
             ->columns([
-                TextColumn::make('kode_barang')
-                    ->label('Kode')
+                TextColumn::make('id')
+                    ->label('ID Barang')
                     ->searchable()
                     ->sortable()
-                    ->weight(FontWeight::Bold),
+                    ->weight(FontWeight::Bold)
+                    ->copyable()
+                    ->copyMessage('ID Copied!')
+                    ->tooltip('Klik untuk copy'),
 
                 TextColumn::make('nama_barang')
                     ->label('Nama Barang')
@@ -38,32 +41,36 @@ class BarangsTable
                     ->badge()
                     ->color('info'),
 
-                TextColumn::make('lokasi.nama_lokasi')
-                    ->label('Lokasi')
-                    ->sortable()
-                    ->badge()
-                    ->color('gray'),
-
-                TextColumn::make('jumlah_stok')
-                    ->label('Stok')
+                TextColumn::make('total_stok')
+                    ->label('Total Stok')
+                    ->state(fn ($record) => $record->getTotalStokAttribute())
                     ->sortable()
                     ->alignEnd()
-                    ->suffix(' unit')
+                    ->suffix(fn ($record) => ' '.$record->satuan)
                     ->badge()
-                    ->color(fn ($record) => $record->isStokRendah() ? 'danger' : 'success'),
+                    ->color(fn ($record) => $record->getTotalStokAttribute() <= 10 ? 'danger' : 'success'),
+
+                TextColumn::make('stokLokasi.stok')
+                    ->label('Lokasi Stok')
+                    ->badge()
+                    ->separator(', ')
+                    ->formatStateUsing(fn ($record, $state) => $record->stokLokasi->map(function ($sl) {
+                        return $sl->lokasi->nama_lokasi.': '.$sl->stok;
+                    })->join(', '))
+                    ->wrap()
+                    ->toggleable(),
+
+                TextColumn::make('satuan')
+                    ->label('Satuan')
+                    ->badge()
+                    ->color('gray')
+                    ->toggleable(),
 
                 TextColumn::make('merk')
                     ->label('Merk')
                     ->searchable()
                     ->sortable()
                     ->toggleable(),
-
-                TextColumn::make('reorder_point')
-                    ->label('ROP')
-                    ->sortable()
-                    ->alignEnd()
-                    ->suffix(' unit')
-                    ->toggleable(isToggledHiddenByDefault: true),
 
                 TextColumn::make('harga_satuan')
                     ->label('Harga')
@@ -78,26 +85,12 @@ class BarangsTable
                     ->sortable()
                     ->toggleable(),
 
-                TextColumn::make('nilaiTotal')
+                TextColumn::make('nilai_total')
                     ->label('Nilai Total')
-                    ->state(fn ($record) => $record->nilaiTotal())
+                    ->state(fn ($record) => $record->getTotalStokAttribute() * $record->harga_satuan)
                     ->money('IDR')
-                    ->sortable(query: function ($query, $direction) {
-                        return $query->orderByRaw("(jumlah_stok * harga_satuan) {$direction}");
-                    })
                     ->alignEnd()
                     ->toggleable(),
-
-                TextColumn::make('status')
-                    ->label('Status')
-                    ->sortable()
-                    ->badge()
-                    ->color(fn (string $state): string => match ($state) {
-                        'baik' => 'success',
-                        'rusak' => 'danger',
-                        'hilang' => 'warning',
-                    })
-                    ->formatStateUsing(fn (string $state): string => ucfirst($state)),
 
                 TextColumn::make('created_at')
                     ->label('Dibuat')
@@ -118,21 +111,6 @@ class BarangsTable
                     ->relationship('kategori', 'nama_kategori')
                     ->multiple()
                     ->preload(),
-
-                SelectFilter::make('lokasi_id')
-                    ->label('Lokasi')
-                    ->relationship('lokasi', 'nama_lokasi')
-                    ->multiple()
-                    ->preload(),
-
-                SelectFilter::make('status')
-                    ->label('Status')
-                    ->options([
-                        'baik' => 'Baik',
-                        'rusak' => 'Rusak',
-                        'hilang' => 'Hilang',
-                    ])
-                    ->multiple(),
 
                 TrashedFilter::make(),
             ])

@@ -65,7 +65,7 @@ class ApprovalTransaksiResource extends Resource
                     ->searchable()
                     ->sortable(),
 
-                Tables\Columns\TextColumn::make('barang.kode_barang')
+                Tables\Columns\TextColumn::make('barang.id')
                     ->label('Kode Barang')
                     ->searchable(),
 
@@ -115,16 +115,13 @@ class ApprovalTransaksiResource extends Resource
                     ])
                     ->action(function (TransaksiBarang $record, array $data): void {
                         DB::transaction(function () use ($record, $data) {
+                            // Update approval status (Observer will handle stock update)
                             $record->update([
                                 'approval_status' => 'approved',
                                 'approved_by' => auth()->id(),
                                 'approved_at' => now(),
                                 'approval_notes' => $data['approval_notes'] ?? null,
                             ]);
-
-                            if ($record->barang) {
-                                $record->barang->increment('jumlah_stok', $record->jumlah);
-                            }
                         });
 
                         Notification::make()
@@ -176,14 +173,13 @@ class ApprovalTransaksiResource extends Resource
                             DB::transaction(function () use ($records, $data) {
                                 foreach ($records as $record) {
                                     if ($record->isPending() && $record->isMasuk()) {
+                                        // Update approval status (Observer will handle stock update)
                                         $record->update([
                                             'approval_status' => 'approved',
                                             'approved_by' => auth()->id(),
                                             'approved_at' => now(),
                                             'approval_notes' => $data['approval_notes'] ?? null,
                                         ]);
-
-                                        $record->barang->increment('jumlah_stok', $record->jumlah);
                                     }
                                 }
                             });

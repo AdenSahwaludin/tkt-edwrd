@@ -3,6 +3,7 @@
 namespace App\Filament\Widgets;
 
 use App\Models\TransaksiBarang;
+use App\Models\TransaksiKeluar;
 use Filament\Widgets\ChartWidget;
 use Illuminate\Support\Carbon;
 
@@ -32,8 +33,7 @@ class TransaksiChartWidget extends ChartWidget
                 ->whereDate('tanggal_transaksi', $date)
                 ->count();
 
-            $transaksiKeluar[] = TransaksiBarang::keluar()
-                ->whereDate('tanggal_transaksi', $date)
+            $transaksiKeluar[] = TransaksiKeluar::whereDate('tanggal_transaksi', $date)
                 ->count();
         }
 

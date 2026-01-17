@@ -5,12 +5,12 @@ namespace App\Filament\Resources\TransaksiBarangs\Schemas;
 use App\Models\Barang;
 use App\Models\Kategori;
 use App\Models\Lokasi;
+use App\Models\StokLokasi;
 use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Get;
-use Filament\Forms\Set;
 use Filament\Schemas\Schema;
 
 class TransaksiBarangForm
@@ -22,70 +22,31 @@ class TransaksiBarangForm
                 Select::make('barang_id')
                     ->label('Barang')
                     ->relationship('barang', 'nama_barang')
-                    ->getOptionLabelFromRecordUsing(fn (Barang $record) => "{$record->nama_barang} ({$record->kategori->nama_kategori} - {$record->lokasi->nama_lokasi})")
+                    ->getOptionLabelFromRecordUsing(fn (Barang $record) => "{$record->id} - {$record->nama_barang} ({$record->kategori->nama_kategori})")
                     ->required()
-                    ->searchable(['nama_barang', 'kode_barang'])
+                    ->searchable(['nama_barang', 'id'])
                     ->preload()
                     ->live()
                     ->createOptionForm([
-                        TextInput::make('kode_barang')
-                            ->label('Kode Barang (Auto-Generate)')
-                            ->required()
-                            ->unique()
-                            ->maxLength(50)
-                            ->disabled()
-                            ->dehydrated()
-                            ->placeholder('Otomatis diisi saat pilih kategori, nama & lokasi')
-                            ->helperText('Format: KATEGORI(3)-NAMA(2)-LOKASI(2)-SEQ(3)'),
-
                         Select::make('kategori_id')
                             ->label('Kategori')
-                            ->options(Kategori::pluck('nama_kategori', 'id'))
+                            ->options(Kategori::pluck('nama_kategori', 'kode_kategori'))
                             ->required()
                             ->searchable()
-                            ->preload()
-                            ->live()
-                            ->afterStateUpdated(function (Get $get, Set $set) {
-                                self::updateKodeBarangInModal($get, $set);
-                            }),
+                            ->preload(),
 
                         TextInput::make('nama_barang')
                             ->label('Nama Barang')
                             ->required()
                             ->maxLength(255)
-                            ->placeholder('Contoh: Komputer Dell Latitude')
-                            ->live(onBlur: true)
-                            ->afterStateUpdated(function (Get $get, Set $set) {
-                                self::updateKodeBarangInModal($get, $set);
-                            }),
+                            ->placeholder('Contoh: Komputer Dell Latitude'),
 
-                        Select::make('lokasi_id')
-                            ->label('Lokasi')
-                            ->options(Lokasi::pluck('nama_lokasi', 'id'))
+                        TextInput::make('satuan')
+                            ->label('Satuan')
                             ->required()
-                            ->searchable()
-                            ->preload()
-                            ->live()
-                            ->afterStateUpdated(function (Get $get, Set $set) {
-                                self::updateKodeBarangInModal($get, $set);
-                            }),
-
-                        TextInput::make('jumlah_stok')
-                            ->label('Jumlah Stok')
-                            ->required()
-                            ->numeric()
-                            ->minValue(0)
-                            ->default(0)
-                            ->suffix('unit'),
-
-                        TextInput::make('reorder_point')
-                            ->label('Reorder Point (ROP)')
-                            ->required()
-                            ->numeric()
-                            ->minValue(0)
-                            ->default(10)
-                            ->suffix('unit')
-                            ->helperText('Stok minimum sebelum perlu pemesanan ulang'),
+                            ->maxLength(50)
+                            ->default('unit')
+                            ->placeholder('Contoh: unit, pcs, box, set'),
 
                         TextInput::make('merk')
                             ->label('Merk/Brand')
@@ -113,81 +74,72 @@ class TransaksiBarangForm
                             ->maxLength(500)
                             ->placeholder('Keterangan tambahan tentang barang...'),
 
-                        Select::make('status')
-                            ->label('Status')
-                            ->options([
-                                'baik' => 'Baik',
-                                'rusak' => 'Rusak',
-                                'hilang' => 'Hilang',
+                        Repeater::make('stok_lokasi')
+                            ->label('Stok per Lokasi')
+                            ->schema([
+                                Select::make('lokasi_id')
+                                    ->label('Lokasi')
+                                    ->options(Lokasi::pluck('nama_lokasi', 'kode_lokasi'))
+                                    ->required()
+                                    ->searchable()
+                                    ->distinct()
+                                    ->disableOptionsWhenSelectedInSiblingRepeaterItems(),
+
+                                TextInput::make('stok')
+                                    ->label('Jumlah Stok')
+                                    ->required()
+                                    ->numeric()
+                                    ->minValue(0)
+                                    ->default(0)
+                                    ->suffix('unit'),
                             ])
-                            ->required()
-                            ->default('baik')
-                            ->native(false),
+                            ->columns(2)
+                            ->defaultItems(1)
+                            ->addActionLabel('Tambah Lokasi')
+                            ->collapsible(),
                     ])
-                    ->createOptionUsing(function (array $data): int {
+                    ->createOptionUsing(function (array $data): string {
                         // Check permission
                         if (! auth()->user()?->can('create_barangs')) {
                             abort(403, 'Anda tidak memiliki izin untuk menambah barang baru.');
                         }
 
-                        // Buat barang baru
+                        // Extract stok_lokasi data
+                        $stokLokasiData = $data['stok_lokasi'] ?? [];
+                        unset($data['stok_lokasi']);
+
+                        // Create barang (ID auto-generated)
                         $barang = Barang::create($data);
+
+                        // Create stok_lokasi entries
+                        foreach ($stokLokasiData as $stokData) {
+                            if (! empty($stokData['lokasi_id'])) {
+                                StokLokasi::create([
+                                    'barang_id' => $barang->id,
+                                    'lokasi_id' => $stokData['lokasi_id'],
+                                    'stok' => $stokData['stok'] ?? 0,
+                                ]);
+                            }
+                        }
 
                         return $barang->id;
                     })
-                    ->createOptionModalHeading('Tambah Barang Baru')
-                    ->afterStateUpdated(function ($state, callable $set, callable $get, $context) {
-                        if ($state) {
-                            $barang = Barang::find($state);
-                            if ($barang) {
-                                // If editing and tipe_transaksi is keluar, add back the original transaction amount
-                                // If creating, just use current stock
-                                if ($context === 'edit' && $get('tipe_transaksi') === 'keluar' && $get('jumlah')) {
-                                    $set('stok_tersedia', $barang->jumlah_stok + (int) $get('jumlah'));
-                                } else {
-                                    $set('stok_tersedia', $barang->jumlah_stok);
-                                }
-                            }
-                        }
-                    }),
+                    ->createOptionModalHeading('Tambah Barang Baru'),
 
-                Select::make('tipe_transaksi')
-                    ->label('Tipe Transaksi')
-                    ->options([
-                        'masuk' => 'Barang Masuk',
-                        'keluar' => 'Barang Keluar',
-                    ])
+                Select::make('lokasi_id')
+                    ->label('Lokasi Tujuan')
+                    ->options(Lokasi::pluck('nama_lokasi', 'kode_lokasi'))
                     ->required()
-                    ->native(false)
-                    ->live(),
-
-                TextInput::make('stok_tersedia')
-                    ->label('Stok Tersedia')
-                    ->disabled()
-                    ->suffix('unit')
-                    ->dehydrated(false)
-                    ->visible(fn ($get) => $get('barang_id') !== null),
+                    ->searchable()
+                    ->preload()
+                    ->helperText('Lokasi dimana barang akan ditambahkan stoknya'),
 
                 TextInput::make('jumlah')
-                    ->label('Jumlah')
+                    ->label('Jumlah Masuk')
                     ->required()
                     ->numeric()
                     ->minValue(1)
-                    ->suffix('unit')
-                    ->live()
-                    ->helperText(fn ($get) => $get('tipe_transaksi') === 'keluar' && $get('stok_tersedia') !== null
-                        ? "Stok tersedia: {$get('stok_tersedia')} unit"
-                        : null)
-                    ->rules([
-                        fn ($get) => function (string $attribute, $value, $fail) use ($get) {
-                            if ($get('tipe_transaksi') === 'keluar') {
-                                $stokTersedia = $get('stok_tersedia');
-                                if ($stokTersedia !== null && $value > $stokTersedia) {
-                                    $fail("Jumlah tidak boleh melebihi stok tersedia ({$stokTersedia} unit)");
-                                }
-                            }
-                        },
-                    ]),
+                    ->suffix(fn ($get) => Barang::find($get('barang_id'))?->satuan ?? 'unit'),
 
                 DatePicker::make('tanggal_transaksi')
                     ->label('Tanggal Transaksi')
@@ -208,21 +160,5 @@ class TransaksiBarangForm
                     ->placeholder('Keterangan transaksi (opsional)')
                     ->columnSpanFull(),
             ]);
-    }
-
-    /**
-     * Update kode barang saat kategori, nama barang, atau lokasi berubah
-     */
-    protected static function updateKodeBarangInModal(Get $get, Set $set): void
-    {
-        $kategoriId = $get('kategori_id');
-        $lokasiId = $get('lokasi_id');
-        $namaBarang = $get('nama_barang');
-
-        // Generate kode barang jika semua field terisi
-        if ($kategoriId && $lokasiId && $namaBarang) {
-            $kodeBarang = Barang::generateKodeBarang($kategoriId, $lokasiId, $namaBarang);
-            $set('kode_barang', $kodeBarang);
-        }
     }
 }

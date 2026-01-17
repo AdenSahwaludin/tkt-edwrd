@@ -19,21 +19,18 @@ class EditTransaksiBarang extends EditRecord
 
     /**
      * Mutate data before filling the form.
-     * Set stok_tersedia with the current stock considering the transaction being edited.
+     * Set stok_tersedia with the current stock at the location.
      */
     protected function mutateFormDataBeforeFill(array $data): array
     {
         $transaksi = $this->record;
-        $barang = $transaksi->barang;
 
-        // For keluar transactions, we need to add back the current transaction amount
-        // to show the actual available stock if this transaction was cancelled
-        if ($transaksi->tipe_transaksi === 'keluar') {
-            $data['stok_tersedia'] = $barang->jumlah_stok + $transaksi->jumlah;
-        } else {
-            // For masuk transactions, subtract the current transaction amount
-            $data['stok_tersedia'] = $barang->jumlah_stok - $transaksi->jumlah;
-        }
+        // Get current stock at the location (excluding this transaction)
+        $stokLokasi = \App\Models\StokLokasi::where('barang_id', $transaksi->barang_id)
+            ->where('lokasi_id', $transaksi->lokasi_id)
+            ->first();
+
+        $data['stok_tersedia'] = $stokLokasi ? $stokLokasi->stok - $transaksi->jumlah : 0;
 
         return $data;
     }

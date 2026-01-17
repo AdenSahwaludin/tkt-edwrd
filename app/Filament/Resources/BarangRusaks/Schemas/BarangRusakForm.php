@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\BarangRusaks\Schemas;
 
 use App\Models\Barang;
+use App\Models\Lokasi;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -21,10 +22,17 @@ class BarangRusakForm
                     ->searchable()
                     ->preload()
                     ->required()
-                    ->getOptionLabelFromRecordUsing(fn (Barang $record) => 
-                        "{$record->kode_barang} - {$record->nama_barang} (Stok: {$record->jumlah_stok})"
+                    ->getOptionLabelFromRecordUsing(fn (Barang $record) => "{$record->id} - {$record->nama_barang} (Total Stok: {$record->total_stok})"
                     )
                     ->helperText('Pilih barang yang rusak'),
+
+                Select::make('lokasi_id')
+                    ->label('Lokasi')
+                    ->options(Lokasi::pluck('nama_lokasi', 'kode_lokasi'))
+                    ->searchable()
+                    ->preload()
+                    ->required()
+                    ->helperText('Lokasi dimana barang rusak berada'),
 
                 TextInput::make('jumlah')
                     ->label('Jumlah Rusak')

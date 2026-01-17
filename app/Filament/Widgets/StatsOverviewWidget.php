@@ -3,7 +3,9 @@
 namespace App\Filament\Widgets;
 
 use App\Models\Barang;
+use App\Models\StokLokasi;
 use App\Models\TransaksiBarang;
+use App\Models\TransaksiKeluar;
 use Filament\Widgets\StatsOverviewWidget as BaseStatsOverviewWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 
@@ -17,13 +19,11 @@ class StatsOverviewWidget extends BaseStatsOverviewWidget
     protected function getStats(): array
     {
         $totalBarang = Barang::count();
-        $barangStokRendah = Barang::stokRendah()->count();
-        $transaksiMasukBulanIni = TransaksiBarang::masuk()
-            ->whereMonth('tanggal_transaksi', now()->month)
+        $barangStokRendah = StokLokasi::where('stok', '<=', 5)->where('stok', '>', 0)->count();
+        $transaksiMasukBulanIni = TransaksiBarang::whereMonth('tanggal_transaksi', now()->month)
             ->whereYear('tanggal_transaksi', now()->year)
             ->count();
-        $transaksiKeluarBulanIni = TransaksiBarang::keluar()
-            ->whereMonth('tanggal_transaksi', now()->month)
+        $transaksiKeluarBulanIni = TransaksiKeluar::whereMonth('tanggal_transaksi', now()->month)
             ->whereYear('tanggal_transaksi', now()->year)
             ->count();
 

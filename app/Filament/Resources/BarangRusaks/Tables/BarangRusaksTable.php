@@ -14,7 +14,7 @@ class BarangRusaksTable
     {
         return $table
             ->columns([
-                TextColumn::make('barang.kode_barang')
+                TextColumn::make('barang.id')
                     ->label('Kode Barang')
                     ->searchable()
                     ->sortable(),

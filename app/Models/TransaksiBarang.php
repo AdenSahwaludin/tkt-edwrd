@@ -24,6 +24,7 @@ class TransaksiBarang extends Model
     protected $fillable = [
         'kode_transaksi',
         'barang_id',
+        'lokasi_id',
         'tipe_transaksi',
         'jumlah',
         'tanggal_transaksi',
@@ -33,7 +34,6 @@ class TransaksiBarang extends Model
         'approved_by',
         'approved_at',
         'approval_status',
-        'approval_notes',
     ];
 
     /**
@@ -54,6 +54,14 @@ class TransaksiBarang extends Model
     public function barang(): BelongsTo
     {
         return $this->belongsTo(Barang::class, 'barang_id');
+    }
+
+    /**
+     * Relasi ke lokasi tujuan.
+     */
+    public function lokasi(): BelongsTo
+    {
+        return $this->belongsTo(Lokasi::class, 'lokasi_id');
     }
 
     /**
@@ -78,14 +86,6 @@ class TransaksiBarang extends Model
     public function scopeMasuk(Builder $query): Builder
     {
         return $query->where('tipe_transaksi', 'masuk');
-    }
-
-    /**
-     * Scope untuk transaksi keluar.
-     */
-    public function scopeKeluar(Builder $query): Builder
-    {
-        return $query->where('tipe_transaksi', 'keluar');
     }
 
     /**
@@ -126,14 +126,6 @@ class TransaksiBarang extends Model
     public function isMasuk(): bool
     {
         return $this->tipe_transaksi === 'masuk';
-    }
-
-    /**
-     * Cek apakah transaksi ini adalah transaksi keluar.
-     */
-    public function isKeluar(): bool
-    {
-        return $this->tipe_transaksi === 'keluar';
     }
 
     /**

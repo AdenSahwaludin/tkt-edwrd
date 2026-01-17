@@ -2,9 +2,7 @@
 
 namespace App\Filament\Resources\Barangs\Schemas;
 
-use App\Models\Barang;
 use App\Models\Kategori;
-use App\Models\Lokasi;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -17,64 +15,33 @@ class BarangForm
     {
         return $schema
             ->components([
-                TextInput::make('kode_barang')
-                    ->label('Kode Barang (Auto-Generate)')
-                    ->required()
-                    ->unique(ignoreRecord: true)
-                    ->maxLength(50)
+                TextInput::make('id')
+                    ->label('ID Barang (Auto-Generate)')
                     ->disabled()
-                    ->dehydrated()
-                    ->placeholder('Otomatis diisi saat pilih kategori, nama & lokasi')
-                    ->helperText('Format: KATEGORI(3)-NAMA(2)-LOKASI(2)-SEQ(3)'),
+                    ->dehydrated(false)
+                    ->placeholder('Otomatis diisi: HPE-ELE-001')
+                    ->helperText('Format: NAMA(3)-KATEGORI(3)-SEQ(3)')
+                    ->visible(fn ($record) => $record !== null),
 
                 Select::make('kategori_id')
                     ->label('Kategori')
-                    ->options(Kategori::pluck('nama_kategori', 'id'))
+                    ->options(Kategori::pluck('nama_kategori', 'kode_kategori'))
                     ->required()
                     ->searchable()
-                    ->preload()
-                    ->live()
-                    ->afterStateUpdated(function ($get, $set, $state) {
-                        self::updateKodeBarang($get, $set);
-                    }),
+                    ->preload(),
 
                 TextInput::make('nama_barang')
                     ->label('Nama Barang')
                     ->required()
                     ->maxLength(255)
-                    ->placeholder('Contoh: Komputer Dell Latitude')
-                    ->live(onBlur: true)
-                    ->afterStateUpdated(function ($get, $set, $state) {
-                        self::updateKodeBarang($get, $set);
-                    }),
+                    ->placeholder('Contoh: Komputer Dell Latitude'),
 
-                Select::make('lokasi_id')
-                    ->label('Lokasi')
-                    ->options(Lokasi::pluck('nama_lokasi', 'id'))
+                TextInput::make('satuan')
+                    ->label('Satuan')
                     ->required()
-                    ->searchable()
-                    ->preload()
-                    ->live()
-                    ->afterStateUpdated(function ($get, $set, $state) {
-                        self::updateKodeBarang($get, $set);
-                    }),
-
-                TextInput::make('jumlah_stok')
-                    ->label('Jumlah Stok')
-                    ->required()
-                    ->numeric()
-                    ->minValue(0)
-                    ->default(0)
-                    ->suffix('unit'),
-
-                TextInput::make('reorder_point')
-                    ->label('Reorder Point (ROP)')
-                    ->required()
-                    ->numeric()
-                    ->minValue(0)
-                    ->default(10)
-                    ->suffix('unit')
-                    ->helperText('Stok minimum sebelum perlu pemesanan ulang'),
+                    ->maxLength(50)
+                    ->default('unit')
+                    ->placeholder('Contoh: unit, pcs, box, set'),
 
                 TextInput::make('merk')
                     ->label('Merk/Brand')
@@ -101,33 +68,6 @@ class BarangForm
                     ->rows(3)
                     ->maxLength(500)
                     ->placeholder('Keterangan tambahan tentang barang...'),
-
-                Select::make('status')
-                    ->label('Status')
-                    ->options([
-                        'baik' => 'Baik',
-                        'rusak' => 'Rusak',
-                        'hilang' => 'Hilang',
-                    ])
-                    ->required()
-                    ->default('baik')
-                    ->native(false),
             ]);
-    }
-
-    /**
-     * Update kode barang saat kategori, nama barang, atau lokasi berubah
-     */
-    protected static function updateKodeBarang($get, $set): void
-    {
-        $kategoriId = $get('kategori_id');
-        $lokasiId = $get('lokasi_id');
-        $namaBarang = $get('nama_barang');
-
-        // Generate kode barang jika semua field terisi
-        if ($kategoriId && $lokasiId && $namaBarang) {
-            $kodeBarang = Barang::generateKodeBarang($kategoriId, $lokasiId, $namaBarang);
-            $set('kode_barang', $kodeBarang);
-        }
     }
 }

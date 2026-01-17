@@ -36,7 +36,7 @@ class TransaksiBarangsTable
                     ->weight(FontWeight::Bold)
                     ->copyable(),
 
-                TextColumn::make('barang.kode_barang')
+                TextColumn::make('barang.id')
                     ->label('Kode Barang')
                     ->searchable()
                     ->sortable(),
@@ -169,18 +169,13 @@ class TransaksiBarangsTable
                     ])
                     ->action(function (TransaksiBarang $record, array $data): void {
                         DB::transaction(function () use ($record, $data) {
-                            // Update approval status
+                            // Update approval status (Observer will handle stock update)
                             $record->update([
                                 'approval_status' => 'approved',
                                 'approved_by' => auth()->id(),
                                 'approved_at' => now(),
                                 'approval_notes' => $data['approval_notes'] ?? null,
                             ]);
-
-                            // Update stok barang for incoming transactions
-                            if ($record->isMasuk() && $record->barang) {
-                                $record->barang->increment('jumlah_stok', $record->jumlah);
-                            }
                         });
 
                         Notification::make()
@@ -233,16 +228,13 @@ class TransaksiBarangsTable
                             DB::transaction(function () use ($records, $data) {
                                 foreach ($records as $record) {
                                     if ($record->isPending() && $record->isMasuk()) {
-                                        // Update approval status
+                                        // Update approval status (Observer will handle stock update)
                                         $record->update([
                                             'approval_status' => 'approved',
                                             'approved_by' => auth()->id(),
                                             'approved_at' => now(),
                                             'approval_notes' => $data['approval_notes'] ?? null,
                                         ]);
-
-                                        // Update stok barang
-                                        $record->barang->increment('jumlah_stok', $record->jumlah);
                                     }
                                 }
                             });

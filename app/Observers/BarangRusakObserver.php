@@ -3,16 +3,23 @@
 namespace App\Observers;
 
 use App\Models\BarangRusak;
+use App\Models\StokLokasi;
 
 class BarangRusakObserver
 {
     /**
      * Handle the BarangRusak "created" event.
-     * Kurangi stok barang saat pencatatan barang rusak dibuat.
+     * Kurangi stok barang di lokasi saat pencatatan barang rusak dibuat.
      */
     public function created(BarangRusak $barangRusak): void
     {
-        $barangRusak->barang()->decrement('jumlah_stok', $barangRusak->jumlah);
+        $stokLokasi = StokLokasi::where('barang_id', $barangRusak->barang_id)
+            ->where('lokasi_id', $barangRusak->lokasi_id)
+            ->first();
+
+        if ($stokLokasi) {
+            $stokLokasi->kurangiStok($barangRusak->jumlah);
+        }
     }
 
     /**
@@ -25,7 +32,17 @@ class BarangRusakObserver
         $difference = $barangRusak->jumlah - $originalJumlah;
 
         if ($difference !== 0) {
-            $barangRusak->barang()->decrement('jumlah_stok', $difference);
+            $stokLokasi = StokLokasi::where('barang_id', $barangRusak->barang_id)
+                ->where('lokasi_id', $barangRusak->lokasi_id)
+                ->first();
+
+            if ($stokLokasi) {
+                if ($difference > 0) {
+                    $stokLokasi->kurangiStok($difference);
+                } else {
+                    $stokLokasi->tambahStok(abs($difference));
+                }
+            }
         }
     }
 
@@ -35,7 +52,13 @@ class BarangRusakObserver
      */
     public function deleted(BarangRusak $barangRusak): void
     {
-        $barangRusak->barang()->increment('jumlah_stok', $barangRusak->jumlah);
+        $stokLokasi = StokLokasi::where('barang_id', $barangRusak->barang_id)
+            ->where('lokasi_id', $barangRusak->lokasi_id)
+            ->first();
+
+        if ($stokLokasi) {
+            $stokLokasi->tambahStok($barangRusak->jumlah);
+        }
     }
 
     /**

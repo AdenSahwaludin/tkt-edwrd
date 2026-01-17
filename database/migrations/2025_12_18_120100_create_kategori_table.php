@@ -9,11 +9,12 @@ return new class extends Migration
     /**
      * Jalankan migrasi untuk membuat tabel kategori barang.
      * Tabel ini menyimpan kategori/jenis barang dalam sistem inventaris.
+     * Struktur baru: kode_kategori string sebagai PK (ELE, FUR, ALK, dll).
      */
     public function up(): void
     {
         Schema::create('kategori', function (Blueprint $table) {
-            $table->id();
+            $table->string('kode_kategori', 50)->primary();
             $table->string('nama_kategori', 100);
             $table->text('deskripsi')->nullable();
             $table->timestamps();

@@ -37,7 +37,7 @@ class ViewTransaksiBarang extends ViewRecord
 
                         Placeholder::make('kode_barang')
                             ->label('Kode Barang')
-                            ->content(fn ($record) => $record->barang->kode_barang)
+                            ->content(fn ($record) => $record->barang->id)
                             ->columnSpan(1),
 
                         Placeholder::make('jumlah')
@@ -83,7 +83,6 @@ class ViewTransaksiBarang extends ViewRecord
                             ->columnSpan(1),
                     ]),
 
-                
                 Section::make('Keterangan & Audit')
                     ->description('Catatan dan informasi pencatatan')
                     ->icon('heroicon-o-information-circle')

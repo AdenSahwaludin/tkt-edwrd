@@ -13,13 +13,16 @@ return new class extends Migration
     {
         Schema::create('barang_rusaks', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('barang_id')->constrained('barang')->cascadeOnDelete();
+            $table->string('barang_id', 50);
             $table->integer('jumlah');
             $table->date('tanggal_kejadian');
             $table->text('keterangan')->nullable();
             $table->string('penanggung_jawab');
             $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
             $table->timestamps();
+
+            // Foreign key to barang
+            $table->foreign('barang_id')->references('id')->on('barang')->cascadeOnDelete();
 
             $table->index('barang_id');
             $table->index('tanggal_kejadian');

@@ -33,7 +33,7 @@ class LokasisTable
 
                 TextColumn::make('barang_count')
                     ->label('Jumlah Barang')
-                    ->counts('barang')
+                    ->counts('stokLokasi')
                     ->sortable()
                     ->alignEnd()
                     ->suffix(' barang')

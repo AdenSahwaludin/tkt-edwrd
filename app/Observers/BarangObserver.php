@@ -9,18 +9,12 @@ class BarangObserver
 {
     /**
      * Handle the Barang "creating" event.
-     * Auto-generate kode_barang jika belum diisi.
+     * Auto-generate ID barang jika belum diisi.
      */
     public function creating(Barang $barang): void
     {
-        // Generate kode barang jika belum ada
-        if (empty($barang->kode_barang)) {
-            $barang->kode_barang = Barang::generateKodeBarang(
-                $barang->kategori_id,
-                $barang->lokasi_id,
-                $barang->nama_barang
-            );
-        }
+        // ID akan di-generate otomatis oleh Model boot method
+        // Tidak perlu action di sini
     }
 
     /**
@@ -33,7 +27,7 @@ class BarangObserver
             'jenis_aktivitas' => 'create',
             'nama_tabel' => 'barang',
             'record_id' => $barang->id,
-            'deskripsi' => "Menambahkan barang baru: {$barang->nama_barang} ({$barang->kode_barang})",
+            'deskripsi' => "Menambahkan barang baru: {$barang->nama_barang} ({$barang->id})",
             'perubahan_data' => $barang->toArray(),
             'ip_address' => request()->ip(),
             'user_agent' => request()->userAgent(),
@@ -50,7 +44,7 @@ class BarangObserver
             'jenis_aktivitas' => 'update',
             'nama_tabel' => 'barang',
             'record_id' => $barang->id,
-            'deskripsi' => "Mengubah data barang: {$barang->nama_barang} ({$barang->kode_barang})",
+            'deskripsi' => "Mengubah data barang: {$barang->nama_barang} ({$barang->id})",
             'perubahan_data' => [
                 'before' => $barang->getOriginal(),
                 'after' => $barang->getAttributes(),
@@ -70,7 +64,7 @@ class BarangObserver
             'jenis_aktivitas' => 'delete',
             'nama_tabel' => 'barang',
             'record_id' => $barang->id,
-            'deskripsi' => "Menghapus barang: {$barang->nama_barang} ({$barang->kode_barang})",
+            'deskripsi' => "Menghapus barang: {$barang->nama_barang} ({$barang->id})",
             'perubahan_data' => $barang->toArray(),
             'ip_address' => request()->ip(),
             'user_agent' => request()->userAgent(),

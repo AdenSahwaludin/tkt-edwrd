@@ -54,6 +54,13 @@ class RolePermissionSeeder extends Seeder
         Permission::firstOrCreate(['name' => 'delete_transaksi_barangs', 'guard_name' => 'web']);
         Permission::firstOrCreate(['name' => 'approve_transaksi_barangs', 'guard_name' => 'web']);
 
+        // === TRANSAKSI KELUAR PERMISSIONS ===
+        Permission::firstOrCreate(['name' => 'view_transaksi_keluars', 'guard_name' => 'web']);
+        Permission::firstOrCreate(['name' => 'create_transaksi_keluars', 'guard_name' => 'web']);
+        Permission::firstOrCreate(['name' => 'edit_transaksi_keluars', 'guard_name' => 'web']);
+        Permission::firstOrCreate(['name' => 'delete_transaksi_keluars', 'guard_name' => 'web']);
+        Permission::firstOrCreate(['name' => 'approve_transaksi_keluars', 'guard_name' => 'web']);
+
         // === BARANG RUSAK PERMISSIONS ===
         Permission::firstOrCreate(['name' => 'view_barang_rusaks', 'guard_name' => 'web']);
         Permission::firstOrCreate(['name' => 'create_barang_rusaks', 'guard_name' => 'web']);
@@ -109,6 +116,12 @@ class RolePermissionSeeder extends Seeder
             'edit_transaksi_barangs',
             'delete_transaksi_barangs',
             'approve_transaksi_barangs',
+            // Transaksi Keluar
+            'view_transaksi_keluars',
+            'create_transaksi_keluars',
+            'edit_transaksi_keluars',
+            'delete_transaksi_keluars',
+            'approve_transaksi_keluars',
             // Log Aktivitas
             'view_log_aktivitas',
             'delete_log_aktivitas',
@@ -150,6 +163,11 @@ class RolePermissionSeeder extends Seeder
             'create_transaksi_barangs',
             'edit_transaksi_barangs',
             'delete_transaksi_barangs',
+            // Transaksi Keluar
+            'view_transaksi_keluars',
+            'create_transaksi_keluars',
+            'edit_transaksi_keluars',
+            'delete_transaksi_keluars',
             // Dashboard & Laporan
             'view_dashboard',
             'view_laporan',
@@ -171,6 +189,8 @@ class RolePermissionSeeder extends Seeder
             // Transaksi: View + Approve
             'view_transaksi_barangs',
             'approve_transaksi_barangs',
+            'view_transaksi_keluars',
+            'approve_transaksi_keluars',
         ]);
 
         // Assign roles to existing users

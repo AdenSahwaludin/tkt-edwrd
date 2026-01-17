@@ -19,17 +19,34 @@ class Barang extends Model
     protected $table = 'barang';
 
     /**
+     * Indicates if the model should be timestamped.
+     */
+    public $timestamps = true;
+
+    /**
+     * The "type" of the auto-incrementing ID.
+     */
+    protected $keyType = 'string';
+
+    /**
+     * Indicates if the IDs are auto-incrementing.
+     */
+    public $incrementing = false;
+
+    /**
+     * The primary key for the model.
+     */
+    protected $primaryKey = 'id';
+
+    /**
      * Atribut yang dapat diisi secara massal.
      *
      * @var array<int, string>
      */
     protected $fillable = [
-        'kode_barang',
+        'id',
         'nama_barang',
         'kategori_id',
-        'lokasi_id',
-        'jumlah_stok',
-        'reorder_point',
         'satuan',
         'status',
         'deskripsi',
@@ -44,11 +61,23 @@ class Barang extends Model
     protected function casts(): array
     {
         return [
-            'jumlah_stok' => 'integer',
-            'reorder_point' => 'integer',
             'harga_satuan' => 'decimal:2',
             'tanggal_pembelian' => 'date',
         ];
+    }
+
+    /**
+     * Boot the model.
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($barang) {
+            if (empty($barang->id)) {
+                $barang->id = self::generateId($barang->kategori_id, $barang->nama_barang);
+            }
+        });
     }
 
     /**
@@ -60,11 +89,11 @@ class Barang extends Model
     }
 
     /**
-     * Relasi ke lokasi penyimpanan barang.
+     * Relasi ke stok lokasi (barang bisa ada di multiple lokasi).
      */
-    public function lokasi(): BelongsTo
+    public function stokLokasi(): HasMany
     {
-        return $this->belongsTo(Lokasi::class, 'lokasi_id');
+        return $this->hasMany(StokLokasi::class, 'barang_id');
     }
 
     /**
@@ -76,6 +105,14 @@ class Barang extends Model
     }
 
     /**
+     * Relasi ke transaksi keluar.
+     */
+    public function transaksiKeluar(): HasMany
+    {
+        return $this->hasMany(TransaksiKeluar::class, 'barang_id');
+    }
+
+    /**
      * Relasi ke barang rusak.
      */
     public function barangRusak(): HasMany
@@ -84,11 +121,23 @@ class Barang extends Model
     }
 
     /**
-     * Scope untuk barang dengan stok rendah (stok <= reorder point).
+     * Get total stok barang di semua lokasi.
      */
-    public function scopeStokRendah(Builder $query): Builder
+    public function getTotalStokAttribute(): int
     {
-        return $query->whereColumn('jumlah_stok', '<=', 'reorder_point');
+        return $this->stokLokasi()->sum('stok');
+    }
+
+    /**
+     * Get list lokasi dimana barang ini tersimpan.
+     */
+    public function getLokasiListAttribute(): string
+    {
+        return $this->stokLokasi()
+            ->with('lokasi')
+            ->get()
+            ->pluck('lokasi.nama_lokasi')
+            ->join(', ');
     }
 
     /**
@@ -100,112 +149,54 @@ class Barang extends Model
     }
 
     /**
-     * Cek apakah stok barang rendah.
+     * Generate ID barang dengan format: HPE-ELE-001
+     * Format: 3 huruf nama + 3 huruf kategori + nomor urut (001, 002, dst)
      */
-    public function isStokRendah(): bool
+    public static function generateId(?string $kategoriId, ?string $namaBarang): string
     {
-        return $this->jumlah_stok <= $this->reorder_point;
+        if (! $kategoriId || ! $namaBarang) {
+            throw new \Exception('Kategori dan Nama Barang harus diisi untuk generate ID');
+        }
+
+        $kategori = Kategori::find($kategoriId);
+        if (! $kategori) {
+            throw new \Exception('Kategori tidak ditemukan');
+        }
+
+        // Ambil 3 huruf pertama dari nama barang (hapus spasi, ambil huruf saja)
+        $cleanNama = preg_replace('/[^A-Za-z]/', '', $namaBarang);
+        $namaCode = strtoupper(substr($cleanNama, 0, 3));
+
+        // Ambil 3 huruf pertama dari kategori
+        $cleanKategori = preg_replace('/[^A-Za-z]/', '', $kategori->nama_kategori);
+        $kategoriCode = strtoupper(substr($cleanKategori, 0, 3));
+
+        // Generate prefix
+        $prefix = "{$namaCode}-{$kategoriCode}";
+
+        // Cari nomor urut terakhir dengan prefix yang sama
+        $lastBarang = self::where('id', 'LIKE', "{$prefix}-%")
+            ->orderBy('id', 'desc')
+            ->first();
+
+        $sequence = 1;
+        if ($lastBarang) {
+            // Extract nomor dari ID terakhir (HPE-ELE-001 -> 001)
+            preg_match('/-(\d+)$/', $lastBarang->id, $matches);
+            if (isset($matches[1])) {
+                $sequence = (int) $matches[1] + 1;
+            }
+        }
+
+        return sprintf('%s-%03d', $prefix, $sequence);
     }
 
     /**
-     * Hitung nilai total inventaris barang ini.
-     */
-    public function nilaiTotal(): float
-    {
-        return $this->jumlah_stok * ($this->harga_satuan ?? 0);
-    }
-
-    /**
-     * Generate kode barang otomatis dengan format: KATEGORI(3)-NAMABARANG(2)-LOKASI(2)-SEQ(3)
-     * Contoh: ELE-KL-RG-001 (Elektronik - Kursi Lipat - Ruang Guru - 001)
+     * Generate kode barang otomatis (DEPRECATED - gunakan generateId).
+     * Tetap dipertahankan untuk backward compatibility.
      */
     public static function generateKodeBarang(?int $kategoriId, ?int $lokasiId, ?string $namaBarang): string
     {
-        // Default values jika parameter null
-        $kategoriCode = 'XXX';
-        $lokasiCode = 'XX';
-        $namaCode = 'XX';
-
-        // Ambil 3 huruf pertama dari nama kategori
-        if ($kategoriId) {
-            $kategori = Kategori::find($kategoriId);
-            if ($kategori) {
-                $kategoriCode = strtoupper(substr($kategori->nama_kategori, 0, 3));
-            }
-        }
-
-        // Ambil 2 huruf dari nama lokasi dengan logika pintar
-        if ($lokasiId) {
-            $lokasi = Lokasi::find($lokasiId);
-            if ($lokasi) {
-                $words = array_filter(explode(' ', $lokasi->nama_lokasi), fn ($w) => ! empty($w));
-                $words = array_values($words); // Re-index array
-
-                // Kata umum yang akan di-skip jika ada kata lain yang lebih spesifik
-                $commonWords = ['ruang', 'lab', 'laboratorium', 'kantor', 'gedung', 'tempat'];
-
-                if (count($words) === 1) {
-                    // Single word: ambil 2 huruf pertama
-                    $lokasiCode = strtoupper(substr($words[0], 0, 2));
-                } elseif (count($words) >= 2) {
-                    // Multi word: cari kata yang paling spesifik
-                    $specificWords = array_filter($words, fn ($w) => ! in_array(strtolower($w), $commonWords));
-                    $specificWords = array_values($specificWords);
-
-                    if (count($specificWords) >= 2) {
-                        // Ambil 1 huruf dari 2 kata spesifik pertama
-                        $lokasiCode = strtoupper(substr($specificWords[0], 0, 1).substr($specificWords[1], 0, 1));
-                    } elseif (count($specificWords) === 1) {
-                        // Hanya 1 kata spesifik: ambil 2 huruf pertama
-                        // Atau gabung dengan angka jika ada
-                        $specificWord = $specificWords[0];
-                        if (preg_match('/(\d+)/', $lokasi->nama_lokasi, $matches)) {
-                            // Ada angka: gabung huruf pertama + angka
-                            $lokasiCode = strtoupper(substr($specificWord, 0, 1).$matches[1]);
-                        } else {
-                            // Tidak ada angka: ambil 2 huruf
-                            $lokasiCode = strtoupper(substr($specificWord, 0, 2));
-                        }
-                    } else {
-                        // Semua kata umum: ambil inisial 2 kata pertama
-                        $lokasiCode = strtoupper(substr($words[0], 0, 1).substr($words[1], 0, 1));
-                    }
-                }
-            }
-        }
-
-        // Ambil 2 huruf inisial dari nama barang (per kata)
-        if ($namaBarang) {
-            $words = explode(' ', $namaBarang);
-            $initials = '';
-            foreach ($words as $word) {
-                if (strlen($initials) < 2 && ! empty($word)) {
-                    $initials .= strtoupper(substr($word, 0, 1));
-                }
-            }
-            // Jika hanya 1 kata atau 1 inisial, ambil 2 huruf pertama
-            $namaCode = strlen($initials) >= 2 ? $initials : strtoupper(substr($namaBarang, 0, 2));
-        }
-
-        // Generate prefix
-        $prefix = "{$kategoriCode}-{$namaCode}-{$lokasiCode}";
-
-        // Cari nomor urut terakhir dengan prefix yang sama
-        $lastBarang = self::withTrashed()
-            ->where('kode_barang', 'LIKE', "{$prefix}-%")
-            ->orderBy('kode_barang', 'desc')
-            ->first();
-
-        $nextNumber = 1;
-        if ($lastBarang) {
-            // Extract nomor dari kode terakhir (ambil 3 digit terakhir)
-            $lastNumber = (int) substr($lastBarang->kode_barang, -3);
-            $nextNumber = $lastNumber + 1;
-        }
-
-        // Format nomor dengan 3 digit (001, 002, dst)
-        $sequenceNumber = str_pad($nextNumber, 3, '0', STR_PAD_LEFT);
-
-        return "{$prefix}-{$sequenceNumber}";
+        return self::generateId($kategoriId, $namaBarang);
     }
 }

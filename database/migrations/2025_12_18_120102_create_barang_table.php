@@ -8,18 +8,15 @@ return new class extends Migration
 {
     /**
      * Jalankan migrasi untuk membuat tabel barang inventaris.
-     * Tabel ini menyimpan data barang dengan tracking stok dan reorder point.
+     * Struktur baru: ID string (HPE-ELE-001), tanpa stok (pindah ke stok_lokasi).
      */
     public function up(): void
     {
         Schema::create('barang', function (Blueprint $table) {
-            $table->id();
-            $table->string('kode_barang', 50)->unique();
+            $table->string('id', 50)->primary();
             $table->string('nama_barang', 200);
-            $table->foreignId('kategori_id')->constrained('kategori')->cascadeOnDelete();
-            $table->foreignId('lokasi_id')->constrained('lokasi')->cascadeOnDelete();
-            $table->integer('jumlah_stok')->default(0);
-            $table->integer('reorder_point')->default(10)->comment('Batas minimal stok sebelum perlu pemesanan ulang');
+            $table->string('kategori_id', 50);
+            $table->foreign('kategori_id')->references('kode_kategori')->on('kategori')->cascadeOnDelete();
             $table->string('satuan', 50)->default('pcs');
             $table->enum('status', ['baik', 'rusak', 'hilang'])->default('baik');
             $table->text('deskripsi')->nullable();
@@ -29,10 +26,10 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes();
 
-            // Index untuk pencarian dan query yang lebih cepat
-            $table->index(['kode_barang', 'nama_barang']);
+            // Index untuk pencarian
+            $table->index('nama_barang');
+            $table->index('kategori_id');
             $table->index('status');
-            $table->index('jumlah_stok');
         });
     }
 

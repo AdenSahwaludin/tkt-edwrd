@@ -9,11 +9,12 @@ return new class extends Migration
     /**
      * Jalankan migrasi untuk membuat tabel lokasi penyimpanan barang.
      * Tabel ini menyimpan informasi ruangan atau tempat penyimpanan barang.
+     * Struktur baru: kode_lokasi string sebagai PK (GD, LB, KLS, dll).
      */
     public function up(): void
     {
         Schema::create('lokasi', function (Blueprint $table) {
-            $table->id();
+            $table->string('kode_lokasi', 50)->primary();
             $table->string('nama_lokasi', 100);
             $table->string('gedung', 50)->nullable();
             $table->string('lantai', 20)->nullable();

@@ -15,19 +15,28 @@ return new class extends Migration
         Schema::create('transaksi_barang', function (Blueprint $table) {
             $table->id();
             $table->string('kode_transaksi', 50)->unique();
-            $table->foreignId('barang_id')->constrained('barang')->cascadeOnDelete();
-            $table->enum('tipe_transaksi', ['masuk', 'keluar']);
+            $table->string('barang_id', 50);
+            $table->string('lokasi_id', 50);
+            $table->enum('tipe_transaksi', ['masuk'])->default('masuk')->comment('Hanya barang masuk (pembelian)');
             $table->integer('jumlah');
             $table->date('tanggal_transaksi');
             $table->string('penanggung_jawab', 100)->nullable();
             $table->text('keterangan')->nullable();
+            $table->enum('approval_status', ['pending', 'approved', 'rejected'])->default('pending');
+            $table->foreignId('approved_by')->nullable()->constrained('users')->nullOnDelete()->comment('User yang approve transaksi');
+            $table->timestamp('approved_at')->nullable();
             $table->foreignId('user_id')->constrained('users')->cascadeOnDelete()->comment('Pengguna yang melakukan transaksi');
             $table->timestamps();
 
+            // Foreign keys
+            $table->foreign('barang_id')->references('id')->on('barang')->cascadeOnDelete();
+            $table->foreign('lokasi_id')->references('kode_lokasi')->on('lokasi')->cascadeOnDelete();
+
             // Index untuk pencarian dan reporting
-            $table->index(['barang_id', 'tipe_transaksi']);
+            $table->index(['barang_id', 'lokasi_id']);
             $table->index('tanggal_transaksi');
             $table->index('kode_transaksi');
+            $table->index('approval_status');
         });
     }
 
